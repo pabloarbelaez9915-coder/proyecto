@@ -144,3 +144,6 @@ Este proyecto est√° en desarrollo acad√©mico y sirve como base para modelar un s
 ## Autor
 
 Proyecto desarrollado para la clase de programaci√≥n.
+"Cambio de validaci¢n QA" 
+"Validaci¢n de QA - cambio de sincronizaci¢n" 
+"Preparaci¢n para QA" 
