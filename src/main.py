@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import sys
 from dataclasses import dataclass, field
 from datetime import date
@@ -92,11 +93,43 @@ def iniciar_sesion() -> Optional[str]:
     return None
 
 
+def parse_precio(valor: object) -> float:
+    texto = str(valor).strip()
+    if not texto:
+        raise ValueError("El precio no puede estar vacío.")
+
+    texto = re.sub(r"[^0-9,\.]", "", texto)
+    if not texto:
+        raise ValueError("El precio debe ser un número válido.")
+
+    if "," in texto and "." in texto:
+        if texto.rfind(",") > texto.rfind("."):
+            texto = texto.replace(".", "").replace(",", ".")
+        else:
+            texto = texto.replace(",", "")
+    elif "," in texto:
+        partes = texto.split(",")
+        if len(partes) > 2:
+            texto = "".join(partes)
+        elif len(partes[-1]) <= 2:
+            texto = ".".join(partes)
+        else:
+            texto = "".join(partes)
+
+    return float(texto)
+
+
+def pedir_precio(label: str = "Precio") -> float:
+    ejemplo = "sin símbolo monetario (ej: 68.000 o 1,200.50; también acepta $68.000)"
+    valor = input(f"{label} ({ejemplo}): ").strip()
+    return parse_precio(valor or 0)
+
+
 def crear_membresia() -> None:
     mostrar_titulo("CREAR MEMBRESIA")
     nombre = input("Nombre: ").strip()
-    precio = float(input("Precio: ").strip() or 0)
     try:
+        precio = pedir_precio("Precio")
         membresia = Membresia(
             nombre=nombre, precio=precio, fecha_inscripcion=date.today()
         )
@@ -128,10 +161,14 @@ def actualizar_membresia() -> None:
                 nuevo_nombre = (
                     input(f"Nuevo nombre ({item.nombre}): ").strip() or item.nombre
                 )
-                nuevo_precio = input(f"Nuevo precio ({item.precio}): ").strip()
+                nuevo_precio = item.precio
+                if input(
+                    f"Desea cambiar el precio actual de {item.precio}? (s/n): "
+                ).strip().lower() in {"s", "si", "y", "yes"}:
+                    nuevo_precio = pedir_precio("Nuevo precio")
                 item.actualizar(
                     nombre=nuevo_nombre,
-                    precio=float(nuevo_precio) if nuevo_precio else item.precio,
+                    precio=nuevo_precio,
                 )
                 print("Membresía actualizada correctamente.")
                 return
