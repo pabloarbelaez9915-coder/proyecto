@@ -144,3 +144,4 @@ Este proyecto está en desarrollo académico y sirve como base para modelar un s
 ## Autor
 
 Proyecto desarrollado para la clase de programación.
+"Cambio de validaci�n QA" 
