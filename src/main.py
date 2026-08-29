@@ -191,6 +191,36 @@ def eliminar_membresia() -> None:
     print("No se encontró la membresía.")
 
 
+def seleccionar_membresia(permitir_vacia: bool = True) -> Optional[Membresia]:
+    if not MEMBRESIAS:
+        print("No hay membresías registradas.")
+        return None
+
+    print("Membresías disponibles:")
+    for idx, membresia in enumerate(MEMBRESIAS, start=1):
+        print(f"  {idx}. {membresia.nombre} - ${membresia.precio}")
+
+    opcion = input(
+        "Seleccione una membresía por número "
+        + ("(deje vacío para sin membresía): " if permitir_vacia else ": ")
+    ).strip()
+
+    if not opcion and permitir_vacia:
+        return None
+
+    try:
+        indice = int(opcion)
+    except ValueError:
+        print("Opción inválida. Ingrese un número válido.")
+        return seleccionar_membresia(permitir_vacia)
+
+    if 1 <= indice <= len(MEMBRESIAS):
+        return MEMBRESIAS[indice - 1]
+
+    print("Número fuera de rango.")
+    return seleccionar_membresia(permitir_vacia)
+
+
 def crear_cliente() -> None:
     mostrar_titulo("CREAR CLIENTE")
     primer_nombre = input("Primer nombre: ").strip()
@@ -201,6 +231,8 @@ def crear_cliente() -> None:
     telefono = input("Teléfono: ").strip()
     clave = input("Clave: ").strip()
 
+    membresia_seleccionada = seleccionar_membresia(permitir_vacia=True)
+
     try:
         cliente = Cliente(
             primer_nombre=primer_nombre,
@@ -210,6 +242,9 @@ def crear_cliente() -> None:
             correo=correo,
             telefono=telefono,
             clave=clave,
+            id_membresia=(
+                membresia_seleccionada.id_membresia if membresia_seleccionada else None
+            ),
         )
         CLIENTES.append(cliente)
         print(f"Cliente creado: {cliente}")
@@ -252,11 +287,25 @@ def actualizar_cliente() -> None:
                     input(f"Nuevo correo ({item.correo}): ").strip() or item.correo
                 )
                 nueva_clave = input("Nueva clave (dejar vacío para mantener): ").strip()
+                nueva_id_membresia = item.id_membresia
+
+                respuesta = (
+                    input("¿Desea cambiar la membresía? (s/n): ").strip().lower()
+                )
+                if respuesta in {"s", "si", "y", "yes"}:
+                    membresia_seleccionada = seleccionar_membresia(permitir_vacia=True)
+                    nueva_id_membresia = (
+                        membresia_seleccionada.id_membresia
+                        if membresia_seleccionada is not None
+                        else None
+                    )
+
                 item.actualizar(
                     primer_nombre=nuevo_nombre,
                     primer_apellido=nuevo_apellido,
                     correo=nuevo_correo,
                     clave=nueva_clave or item.clave,
+                    id_membresia=nueva_id_membresia,
                 )
                 print("Cliente actualizado correctamente.")
                 return
@@ -354,7 +403,7 @@ def menu_membresias() -> None:
         print("2. Listar membresías")
         print("3. Editar membresía")
         print("4. Eliminar membresía")
-        print("5. Regresar")
+        print("5. Regresar al menú principal")
         opcion = input("Seleccione una opción: ").strip()
         if opcion == "1":
             crear_membresia()
@@ -365,9 +414,10 @@ def menu_membresias() -> None:
         elif opcion == "4":
             eliminar_membresia()
         elif opcion == "5":
+            print("Volviendo al menú principal...\n")
             return
         else:
-            print("Opción inválida.")
+            print("Opción inválida. Intente nuevamente.")
 
 
 def menu_clientes() -> None:
@@ -377,7 +427,7 @@ def menu_clientes() -> None:
         print("2. Listar clientes")
         print("3. Editar cliente")
         print("4. Eliminar cliente")
-        print("5. Regresar")
+        print("5. Regresar al menú principal")
         opcion = input("Seleccione una opción: ").strip()
         if opcion == "1":
             crear_cliente()
@@ -388,9 +438,10 @@ def menu_clientes() -> None:
         elif opcion == "4":
             eliminar_cliente()
         elif opcion == "5":
+            print("Volviendo al menú principal...\n")
             return
         else:
-            print("Opción inválida.")
+            print("Opción inválida. Intente nuevamente.")
 
 
 def menu_sedes() -> None:
@@ -400,7 +451,7 @@ def menu_sedes() -> None:
         print("2. Listar sedes")
         print("3. Editar sede")
         print("4. Eliminar sede")
-        print("5. Regresar")
+        print("5. Regresar al menú principal")
         opcion = input("Seleccione una opción: ").strip()
         if opcion == "1":
             crear_sede()
@@ -411,9 +462,10 @@ def menu_sedes() -> None:
         elif opcion == "4":
             eliminar_sede()
         elif opcion == "5":
+            print("Volviendo al menú principal...\n")
             return
         else:
-            print("Opción inválida.")
+            print("Opción inválida. Intente nuevamente.")
 
 
 def menu_principal() -> None:
@@ -421,7 +473,7 @@ def menu_principal() -> None:
         mostrar_titulo("SISTEMA DE GESTIÓN")
         print("1. Iniciar sesión")
         print("2. Crear usuario")
-        print("3. Salir")
+        print("3. Salir del sistema")
         opcion = input("Seleccione una opción: ").strip()
         if opcion == "1":
             usuario = iniciar_sesion()
@@ -440,17 +492,17 @@ def menu_principal() -> None:
                     elif subopcion == "3":
                         menu_sedes()
                     elif subopcion == "4":
-                        print("Sesión cerrada.")
+                        print("Sesión cerrada correctamente.\n")
                         break
                     else:
-                        print("Opción inválida.")
+                        print("Opción inválida. Intente nuevamente.")
         elif opcion == "2":
             crear_usuario()
         elif opcion == "3":
-            print("Gracias por usar el sistema.")
+            print("Gracias por usar el sistema. ¡Hasta luego!")
             break
         else:
-            print("Opción inválida.")
+            print("Opción inválida. Intente nuevamente.")
 
 
 if __name__ == "__main__":
