@@ -141,6 +141,8 @@ El proyecto cuenta con una interfaz por consola para:
 
 Este proyecto está en desarrollo académico y sirve como base para modelar un sistema de gestión deportiva con Python.
 
+> Estado de validación: rama de funcionalidad creada para preparación del flujo de integración feat -> dev -> qa -> prod.
+
 ## Autor
 
 Proyecto desarrollado para la clase de programación.
