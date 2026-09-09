@@ -1,7 +1,7 @@
 from uuid import uuid4
 from datetime import date
 from src.entities.clientes import Cliente, Membresia
-from src.main import parse_precio
+from src.main import formatear_precio, parse_precio
 
 
 def test_crear_cliente_y_membresia():
@@ -28,5 +28,7 @@ def test_crear_cliente_y_membresia():
 
 
 def test_parse_precio_acepta_valores_con_moneda():
-    assert parse_precio("68.000$") == 68.0
+    assert parse_precio("$68.000") == 68000.0
+    assert parse_precio("68.000$") == 68000.0
     assert parse_precio("1,200.50") == 1200.5
+    assert formatear_precio(68000) == "68.000"

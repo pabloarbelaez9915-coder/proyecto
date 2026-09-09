@@ -98,8 +98,8 @@ def parse_precio(valor: object) -> float:
     if not texto:
         raise ValueError("El precio no puede estar vacío.")
 
-    texto = re.sub(r"[^0-9,\.]", "", texto)
-    if not texto:
+    texto = texto.replace("$", "").replace(" ", "")
+    if not texto or not re.fullmatch(r"\d+(?:[.,]\d+)*", texto):
         raise ValueError("El precio debe ser un número válido.")
 
     if "," in texto and "." in texto:
@@ -109,18 +109,25 @@ def parse_precio(valor: object) -> float:
             texto = texto.replace(",", "")
     elif "," in texto:
         partes = texto.split(",")
-        if len(partes) > 2:
+        if len(partes) == 1 or len(partes[-1]) == 3:
             texto = "".join(partes)
-        elif len(partes[-1]) <= 2:
-            texto = ".".join(partes)
         else:
-            texto = "".join(partes)
+            texto = ".".join(partes)
+    elif texto.count(".") > 1:
+        texto = texto.replace(".", "")
+    elif "." in texto and len(texto.rsplit(".", 1)[1]) == 3:
+        texto = texto.replace(".", "")
 
     return float(texto)
 
 
+def formatear_precio(precio: float) -> str:
+    valor = f"{precio:,.2f}".rstrip("0").rstrip(".")
+    return valor.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
 def pedir_precio(label: str = "Precio") -> float:
-    ejemplo = "sin símbolo monetario (ej: 68.000 o 1,200.50; también acepta $68.000)"
+    ejemplo = "ej: $68.000 o 68.000$"
     valor = input(f"{label} ({ejemplo}): ").strip()
     return parse_precio(valor or 0)
 
@@ -146,7 +153,7 @@ def listar_membresias() -> None:
         return
     for item in MEMBRESIAS:
         print(
-            f"- {item.id_membresia} | {item.nombre} | ${item.precio} | Inscrita: {item.fecha_inscripcion}"
+            f"- {item.id_membresia} | {item.nombre} | ${formatear_precio(item.precio)} | Inscrita: {item.fecha_inscripcion}"
         )
 
 
@@ -198,7 +205,7 @@ def seleccionar_membresia(permitir_vacia: bool = True) -> Optional[Membresia]:
 
     print("Membresías disponibles:")
     for idx, membresia in enumerate(MEMBRESIAS, start=1):
-        print(f"  {idx}. {membresia.nombre} - ${membresia.precio}")
+        print(f"  {idx}. {membresia.nombre} - ${formatear_precio(membresia.precio)}")
 
     opcion = input(
         "Seleccione una membresía por número "
@@ -219,6 +226,23 @@ def seleccionar_membresia(permitir_vacia: bool = True) -> Optional[Membresia]:
 
     print("Número fuera de rango.")
     return seleccionar_membresia(permitir_vacia)
+
+
+def cargar_membresias_iniciales() -> None:
+    if MEMBRESIAS:
+        return
+
+    planes = (
+        ("Por un día", 5000),
+        ("Por un mes", 80000),
+        ("Por un mes - tercera edad", 68000),
+        ("Por un año", 800000),
+        ("Por un año - tercera edad", 500000),
+    )
+    MEMBRESIAS.extend(
+        Membresia(nombre=nombre, precio=precio, fecha_inscripcion=date.today())
+        for nombre, precio in planes
+    )
 
 
 def crear_cliente() -> None:
@@ -469,6 +493,7 @@ def menu_sedes() -> None:
 
 
 def menu_principal() -> None:
+    cargar_membresias_iniciales()
     while True:
         mostrar_titulo("SISTEMA DE GESTIÓN")
         print("1. Iniciar sesión")
