@@ -77,7 +77,40 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-4. Ejecuta la aplicación:
+4. Instala las dependencias del proyecto:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+5. Copia el archivo de ejemplo y configura la conexión a Neon:
+
+```bash
+copy .env.example .env
+```
+
+Luego edita el archivo `.env` con tu cadena de conexión PostgreSQL de Neon:
+
+```env
+DATABASE_URL=postgresql+psycopg2://usuario:password@host:5432/dbname?sslmode=require
+```
+
+6. Crea las tablas en la base de datos:
+
+```bash
+python -c "from src.database.migrate import create_all_tables; create_all_tables(); print('OK')"
+```
+
+7. Ejecuta los seeders:
+
+```bash
+python -c "from src.database.config import SessionLocal; from src.database.seeders import seed_all; from src.database.migrate import create_all_tables; create_all_tables();
+with SessionLocal() as session:
+    seed_all(session)
+    print('Seeders ejecutados')"
+```
+
+8. Ejecuta la aplicación:
 
 ```bash
 python src/main.py
