@@ -191,7 +191,32 @@ SELECT id_cliente, correo, id_membresia FROM clientes;
 
 ### Demostraci贸n CRUD
 
-`python -m src.demo_crud` muestra en consola `CREATE`, `READ`, `UPDATE` y `DELETE`. Para la sustentaci贸n, ejecuta el demo contra Neon, copia el UUID mostrado y verifica cada estado con consultas SQL en el panel de Neon. El script elimina el registro de demostraci贸n al final.
+`python -m src.demo_crud` muestra en consola `CREATE`, `READ`, `UPDATE` y `DELETE`. Para la sustentaci贸n, ejecuta el demo contra Neon con pausas entre operaciones:
+
+```powershell
+python -m src.demo_crud --pause
+```
+
+En cada pausa copia el UUID mostrado y ejecuta en el panel SQL de Neon:
+
+```sql
+-- Despu茅s de CREATE y READ
+SELECT id_membresia, nombre, precio
+FROM membresias
+WHERE id_membresia = 'UUID_MOSTRADO';
+
+-- Despu茅s de UPDATE: debe mostrar "Demo examen actualizada"
+SELECT id_membresia, nombre, precio
+FROM membresias
+WHERE id_membresia = 'UUID_MOSTRADO';
+
+-- Despu茅s de DELETE: debe devolver cero filas
+SELECT count(*)
+FROM membresias
+WHERE id_membresia = 'UUID_MOSTRADO';
+```
+
+El script elimina el registro de demostraci贸n al final.
 
 ### Flujo de ramas solicitado
 
@@ -209,12 +234,12 @@ La rama `feat/examen-sqlalchemy` debe ser la misma fuente de los tres Pull Reque
 1. Mostrar la rama `feat` y el c贸digo de `src/models.py`.
 2. Ejecutar `src.migrations` y mostrar las tablas creadas en Neon.
 3. Ejecutar `src.seeders` y consultar las nueve tablas en Neon.
-4. Ejecutar `src.demo_crud` y pausar despu茅s de cada operaci贸n.
-5. Confirmar en Neon el registro creado, actualizado y eliminado.
+4. Ejecutar `src.demo_crud --pause` y copiar el UUID generado.
+5. Consultar ese UUID en Neon despu茅s de `CREATE`, `READ`, `UPDATE` y `DELETE`.
 6. Mostrar los tres Pull Requests hacia `dev`, `qa` y `prod`.
 
 ## Autor
 
 Proyecto desarrollado para la clase de programaci贸n.
-"Cambio de validaci QA" 
-"Validaci de QA - cambio de sincronizaci" 
+"Cambio de validaci锟絥 QA" 
+"Validaci锟絥 de QA - cambio de sincronizaci锟絥" 
