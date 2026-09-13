@@ -141,6 +141,105 @@ El proyecto cuenta con una interfaz por consola para:
 
 Este proyecto está en desarrollo académico y sirve como base para modelar un sistema de gestión deportiva con Python.
 
+## Migración SQLAlchemy y Neon
+
+La migración incluye modelos ORM para `clientes`, `membresias`, `entrenadores`, `sedes`, `clases`, `rutinas`, `equipos`, `asistencias` y `pagos`. Las relaciones y llaves foráneas están definidas en `src/models.py`. Los CRUD reciben una sesión SQLAlchemy y guardan cambios con `commit()`.
+
+### Instalación
+
+Desde la raíz del proyecto, en PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+### Base local, migración y seeders
+
+SQLite se usa automáticamente si no existe `DATABASE_URL`. Para crear las tablas y cargar datos de prueba:
+
+```powershell
+python -m src.migrations
+python -m src.seeders
+python -m src.demo_crud
+```
+
+Los seeders son idempotentes: se pueden ejecutar varias veces sin duplicar los datos identificados por nombre o correo.
+
+### Conexión con Neon
+
+1. Copia `.env.example` como `.env`.
+2. Pega la cadena de conexión de Neon en `DATABASE_URL`, conservando `sslmode=require`.
+3. Carga la variable en la sesión de PowerShell (no la escribas en el repositorio):
+
+```powershell
+$env:DATABASE_URL = "postgresql+psycopg://USUARIO:CONTRASENA@HOST/BASE?sslmode=require"
+python -m src.migrations
+python -m src.seeders
+```
+
+En Neon se pueden comprobar los resultados con:
+
+```sql
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public' ORDER BY table_name;
+
+SELECT id_membresia, nombre, precio FROM membresias;
+SELECT id_cliente, correo, id_membresia FROM clientes;
+```
+
+### Demostración CRUD
+
+`python -m src.demo_crud` muestra en consola `CREATE`, `READ`, `UPDATE` y `DELETE`. Para la sustentación, ejecuta el demo contra Neon con pausas entre operaciones:
+
+```powershell
+python -m src.demo_crud --pause
+```
+
+En cada pausa copia el UUID mostrado y ejecuta en el panel SQL de Neon:
+
+```sql
+-- Después de CREATE y READ
+SELECT id_membresia, nombre, precio
+FROM membresias
+WHERE id_membresia = 'UUID_MOSTRADO';
+
+-- Después de UPDATE: debe mostrar "Demo examen actualizada"
+SELECT id_membresia, nombre, precio
+FROM membresias
+WHERE id_membresia = 'UUID_MOSTRADO';
+
+-- Después de DELETE: debe devolver cero filas
+SELECT count(*)
+FROM membresias
+WHERE id_membresia = 'UUID_MOSTRADO';
+```
+
+El script elimina el registro de demostración al final.
+
+### Flujo de ramas solicitado
+
+```text
+dev -> feat/examen-sqlalchemy
+feat/examen-sqlalchemy -> dev
+feat/examen-sqlalchemy -> qa
+feat/examen-sqlalchemy -> prod
+```
+
+La rama `feat/examen-sqlalchemy` debe ser la misma fuente de los tres Pull Requests. No se deben subir `.env`, contraseñas ni cadenas de conexión reales.
+
+### Guion breve del video
+
+1. Mostrar la rama `feat` y el código de `src/models.py`.
+2. Ejecutar `src.migrations` y mostrar las tablas creadas en Neon.
+3. Ejecutar `src.seeders` y consultar las nueve tablas en Neon.
+4. Ejecutar `src.demo_crud --pause` y copiar el UUID generado.
+5. Consultar ese UUID en Neon después de `CREATE`, `READ`, `UPDATE` y `DELETE`.
+6. Mostrar los tres Pull Requests hacia `dev`, `qa` y `prod`.
+
 ## Autor
 
 Proyecto desarrollado para la clase de programación.
+"Cambio de validaci�n QA" 
+"Validaci�n de QA - cambio de sincronizaci�n" 
