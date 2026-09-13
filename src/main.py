@@ -10,6 +10,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -17,9 +18,30 @@ if __package__ in (None, ""):
 else:
     from src.entities.clientes import Cliente, Membresia
 
-from src.crud import ClienteCrud, MembresiaCrud, SedeCrud
+from src.crud import (
+    AsistenciaCrud,
+    ClaseCrud,
+    ClienteCrud,
+    EntrenadorCrud,
+    EquipoCrud,
+    MembresiaCrud,
+    PagoCrud,
+    RutinaCrud,
+    SedeCrud,
+)
 from src.database import SessionLocal, init_db
-from src.models import ClienteModel, MembresiaModel, SedeModel
+from src.models import (
+    AsistenciaModel,
+    ClaseModel,
+    ClienteModel,
+    EntrenadorModel,
+    EquipoModel,
+    MembresiaModel,
+    PagoModel,
+    RutinaModel,
+    SedeModel,
+    UsuarioModel,
+)
 
 
 @dataclass
@@ -61,9 +83,6 @@ class Sede:
         return f"Sede({self.id_sede}, nombre={self.nombre}, ciudad={self.ciudad}, estado={estado})"
 
 
-USUARIOS: Dict[str, str] = {
-    "admin": "1234",
-}
 CLIENTES: List[Cliente] = []
 MEMBRESIAS: List[Membresia] = []
 SEDES: List[Sede] = []
@@ -89,22 +108,55 @@ def crear_usuario() -> None:
     if not usuario or not clave:
         print("Los campos no pueden estar vacíos.")
         return
-    if usuario in USUARIOS:
+    existente = db_session().scalar(
+        select(UsuarioModel).where(UsuarioModel.nombre_usuario == usuario)
+    )
+    if existente is not None:
         print("Ese usuario ya existe.")
         return
-    USUARIOS[usuario] = clave
-    print(f"Usuario '{usuario}' registrado correctamente.")
+    try:
+        item = UsuarioModel(nombre_usuario=usuario, clave=clave)
+        db_session().add(item)
+        db_session().commit()
+        print(f"Usuario '{item.nombre_usuario}' registrado correctamente.")
+    except SQLAlchemyError as exc:
+        db_session().rollback()
+        print(f"No se pudo registrar el usuario: {exc.orig}")
 
 
 def iniciar_sesion() -> Optional[str]:
     mostrar_titulo("LOGIN")
     usuario = input("Usuario: ").strip()
     clave = input("Clave: ").strip()
-    if USUARIOS.get(usuario) == clave:
+    item = db_session().scalar(
+        select(UsuarioModel).where(
+            UsuarioModel.nombre_usuario == usuario,
+            UsuarioModel.activo.is_(True),
+        )
+    )
+    if item is not None and item.clave == clave:
         print(f"Bienvenido, {usuario}.")
         return usuario
     print("Usuario o contraseña incorrectos.")
     return None
+
+
+def _asegurar_usuario_admin() -> None:
+    admin = db_session().scalar(
+        select(UsuarioModel).where(UsuarioModel.nombre_usuario == "admin")
+    )
+    if admin is None:
+        db_session().add(UsuarioModel(nombre_usuario="admin", clave="1234"))
+        db_session().commit()
+
+
+def _asegurar_usuario_admin() -> None:
+    admin = db_session().scalar(
+        select(UsuarioModel).where(UsuarioModel.nombre_usuario == "admin")
+    )
+    if admin is None:
+        db_session().add(UsuarioModel(nombre_usuario="admin", clave="1234"))
+        db_session().commit()
 
 
 def crear_membresia() -> None:
@@ -395,6 +447,203 @@ def eliminar_sede() -> None:
     print("No se encontró la sede.")
 
 
+def _mostrar_registros(crud, label: str) -> list:
+    registros = crud.get_all(db_session())
+    mostrar_titulo(label)
+    if not registros:
+        print("No hay registros.")
+        return []
+    for registro in registros:
+        valores = " | ".join(
+            f"{column.name}={getattr(registro, column.name)}"
+            for column in registro.__table__.columns
+        )
+        print(f"- {valores}")
+    return registros
+
+
+FOREIGN_KEY_CRUDS = {
+    "id_cliente": (ClienteCrud, "cliente"),
+    "id_entrenador": (EntrenadorCrud, "entrenador"),
+    "id_sede": (SedeCrud, "sede"),
+    "id_clase": (ClaseCrud, "clase"),
+    "id_membresia": (MembresiaCrud, "membresía"),
+}
+
+
+def _validar_referencias(values: dict) -> None:
+    for field_name, value in values.items():
+        if value and field_name in FOREIGN_KEY_CRUDS:
+            crud, label = FOREIGN_KEY_CRUDS[field_name]
+            try:
+                UUID(str(value))
+            except (ValueError, TypeError, AttributeError) as exc:
+                raise ValueError(
+                    f"El ID de {label} debe ser un UUID válido de 36 caracteres. "
+                    "Ingresa únicamente el valor, sin etiquetas como 'id_sede='."
+                ) from exc
+            if crud.get_by_id(db_session(), value) is None:
+                raise ValueError(
+                    f"El ID de {label} '{value}' no existe. "
+                    "Consulta primero la opción Listar."
+                )
+
+
+def _crear_registro(
+    crud, model, label: str, fields: list[tuple[str, str, object]]
+) -> None:
+    mostrar_titulo(f"CREAR {label}")
+    values = {}
+    try:
+        for name, prompt, converter in fields:
+            raw_value = input(f"{prompt}: ").strip()
+            values[name] = converter(raw_value) if raw_value else None
+        _validar_referencias(values)
+        item = crud.create(db_session(), model(**values))
+        print(f"Registro creado: {getattr(item, crud.id_field)}")
+    except (ValueError, TypeError) as exc:
+        print(f"Error: {exc}")
+    except SQLAlchemyError as exc:
+        db_session().rollback()
+        print(f"No se pudo guardar el registro: {exc.orig}")
+
+
+def _actualizar_registro(
+    crud, label: str, fields: list[tuple[str, str, object]]
+) -> None:
+    registros = _mostrar_registros(crud, label)
+    if not registros:
+        return
+    identifier = input("Ingrese el ID del registro a editar: ").strip()
+    item = crud.get_by_id(db_session(), identifier)
+    if item is None:
+        print("No se encontró el registro.")
+        return
+    values = {}
+    try:
+        for name, prompt, converter in fields:
+            current = getattr(item, name)
+            raw_value = input(f"{prompt} ({current}): ").strip()
+            if raw_value:
+                values[name] = converter(raw_value)
+        _validar_referencias(values)
+        if values:
+            crud.update(db_session(), identifier, values)
+        print("Registro actualizado correctamente.")
+    except (ValueError, TypeError) as exc:
+        print(f"Error: {exc}")
+    except SQLAlchemyError as exc:
+        db_session().rollback()
+        print(f"No se pudo actualizar el registro: {exc.orig}")
+
+
+def _eliminar_registro(crud, label: str) -> None:
+    registros = _mostrar_registros(crud, label)
+    if not registros:
+        return
+    identifier = input("Ingrese el ID del registro a eliminar: ").strip()
+    if crud.delete(db_session(), identifier):
+        print("Registro eliminado correctamente.")
+    else:
+        print("No se encontró el registro.")
+
+
+def _menu_entidad(
+    crud, model, label: str, fields: list[tuple[str, str, object]]
+) -> None:
+    while True:
+        mostrar_titulo(f"GESTIÓN DE {label}")
+        print("1. Crear")
+        print("2. Listar")
+        print("3. Editar")
+        print("4. Eliminar")
+        print("5. Regresar")
+        opcion = input("Seleccione una opción: ").strip()
+        if opcion == "1":
+            _crear_registro(crud, model, label, fields)
+        elif opcion == "2":
+            _mostrar_registros(crud, label)
+        elif opcion == "3":
+            _actualizar_registro(crud, label, fields)
+        elif opcion == "4":
+            _eliminar_registro(crud, label)
+        elif opcion == "5":
+            return
+        else:
+            print("Opción inválida.")
+
+
+def menu_rutinas() -> None:
+    fields = [
+        ("nombre", "Nombre", str),
+        ("descripcion", "Descripción", str),
+        ("duracion_minutos", "Duración en minutos", int),
+        ("nivel", "Nivel", str),
+        ("objetivo", "Objetivo", str),
+        ("id_cliente", "ID del cliente (opcional)", str),
+        ("id_entrenador", "ID del entrenador (opcional)", str),
+    ]
+    _menu_entidad(RutinaCrud, RutinaModel, "RUTINAS", fields)
+
+
+def menu_pagos() -> None:
+    fields = [
+        ("monto", "Monto", Decimal),
+        ("metodo_pago", "Método de pago", str),
+        ("estado", "Estado", str),
+        ("id_cliente", "ID del cliente (opcional)", str),
+        ("id_membresia", "ID de la membresía (opcional)", str),
+    ]
+    _menu_entidad(PagoCrud, PagoModel, "PAGOS", fields)
+
+
+def menu_equipos() -> None:
+    fields = [
+        ("nombre", "Nombre", str),
+        ("descripcion", "Descripción", str),
+        ("categoria", "Categoría", str),
+        ("estado", "Estado", str),
+        ("id_sede", "ID de la sede (opcional)", str),
+    ]
+    _menu_entidad(EquipoCrud, EquipoModel, "EQUIPOS", fields)
+
+
+def menu_entrenadores() -> None:
+    fields = [
+        ("primer_nombre", "Primer nombre", str),
+        ("segundo_nombre", "Segundo nombre", str),
+        ("primer_apellido", "Primer apellido", str),
+        ("segundo_apellido", "Segundo apellido", str),
+        ("correo", "Correo", str),
+        ("telefono", "Teléfono", str),
+        ("clave", "Clave", str),
+        ("id_sede", "ID de la sede (opcional)", str),
+    ]
+    _menu_entidad(EntrenadorCrud, EntrenadorModel, "ENTRENADORES", fields)
+
+
+def menu_clases() -> None:
+    fields = [
+        ("nombre", "Nombre", str),
+        ("descripcion", "Descripción", str),
+        ("capacidad_maxima", "Capacidad máxima", int),
+        ("horario", "Horario", str),
+        ("nivel", "Nivel", str),
+        ("id_entrenador", "ID del entrenador (opcional)", str),
+        ("id_sede", "ID de la sede (opcional)", str),
+    ]
+    _menu_entidad(ClaseCrud, ClaseModel, "CLASES", fields)
+
+
+def menu_asistencias() -> None:
+    fields = [
+        ("estado", "Estado", str),
+        ("id_cliente", "ID del cliente (opcional)", str),
+        ("id_clase", "ID de la clase (opcional)", str),
+    ]
+    _menu_entidad(AsistenciaCrud, AsistenciaModel, "ASISTENCIAS", fields)
+
+
 def menu_membresias() -> None:
     while True:
         mostrar_titulo("GESTIÓN DE MEMBRESIAS")
@@ -469,6 +718,7 @@ def menu_principal() -> None:
     init_db()
     with SessionLocal() as session:
         DB_SESSION = session
+        _asegurar_usuario_admin()
         try:
             while True:
                 mostrar_titulo("SISTEMA DE GESTIÓN")
@@ -484,7 +734,13 @@ def menu_principal() -> None:
                             print("1. Gestionar clientes")
                             print("2. Gestionar membresías")
                             print("3. Gestionar sedes")
-                            print("4. Cerrar sesión")
+                            print("4. Gestionar rutinas")
+                            print("5. Gestionar pagos")
+                            print("6. Gestionar equipos")
+                            print("7. Gestionar entrenadores")
+                            print("8. Gestionar clases")
+                            print("9. Gestionar asistencias")
+                            print("10. Cerrar sesión")
                             subopcion = input("Seleccione una opción: ").strip()
                             if subopcion == "1":
                                 menu_clientes()
@@ -493,6 +749,18 @@ def menu_principal() -> None:
                             elif subopcion == "3":
                                 menu_sedes()
                             elif subopcion == "4":
+                                menu_rutinas()
+                            elif subopcion == "5":
+                                menu_pagos()
+                            elif subopcion == "6":
+                                menu_equipos()
+                            elif subopcion == "7":
+                                menu_entrenadores()
+                            elif subopcion == "8":
+                                menu_clases()
+                            elif subopcion == "9":
+                                menu_asistencias()
+                            elif subopcion == "10":
                                 print("Sesión cerrada.")
                                 break
                             else:

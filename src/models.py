@@ -13,6 +13,17 @@ class Base(DeclarativeBase):
     pass
 
 
+class UsuarioModel(Base):
+    __tablename__ = "usuarios"
+
+    id_usuario: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid4())
+    )
+    nombre_usuario: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
+    clave: Mapped[str] = mapped_column(String(255), nullable=False)
+    activo: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
 class MembresiaModel(Base):
     __tablename__ = "membresias"
 
@@ -228,6 +239,7 @@ class PagoModel(Base):
 
 __all__ = [
     "Base",
+    "UsuarioModel",
     "MembresiaModel",
     "SedeModel",
     "ClienteModel",

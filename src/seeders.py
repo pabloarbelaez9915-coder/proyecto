@@ -18,6 +18,7 @@ from src.models import (
     PagoModel,
     RutinaModel,
     SedeModel,
+    UsuarioModel,
 )
 
 
@@ -40,6 +41,17 @@ def seed_membresias(session: Session) -> list[MembresiaModel]:
         result.append(item)
     session.flush()
     return result
+
+
+def seed_usuarios(session: Session) -> list[UsuarioModel]:
+    usuario = session.scalar(
+        select(UsuarioModel).where(UsuarioModel.nombre_usuario == "admin")
+    )
+    if usuario is None:
+        usuario = UsuarioModel(nombre_usuario="admin", clave="1234")
+        session.add(usuario)
+    session.flush()
+    return [usuario]
 
 
 def seed_sedes(session: Session) -> list[SedeModel]:
@@ -185,6 +197,7 @@ def seed_pagos(
 
 
 def seed_all(session: Session) -> dict[str, int]:
+    usuarios = seed_usuarios(session)
     membresias = seed_membresias(session)
     sedes = seed_sedes(session)
     clientes = seed_clientes(session, membresias[1])
@@ -196,6 +209,7 @@ def seed_all(session: Session) -> dict[str, int]:
     pagos = seed_pagos(session, clientes[0], membresias[1])
     session.commit()
     return {
+        "usuarios": len(usuarios),
         "membresias": len(membresias),
         "sedes": len(sedes),
         "clientes": len(clientes),
