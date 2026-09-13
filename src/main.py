@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass, field
-from datetime import date
-from decimal import Decimal
+from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Dict, List, Optional
 from uuid import UUID, uuid4
@@ -111,6 +111,7 @@ def crear_usuario() -> None:
     existente = db_session().scalar(
         select(UsuarioModel).where(UsuarioModel.nombre_usuario == usuario)
     )
+    db_session().commit()
     if existente is not None:
         print("Ese usuario ya existe.")
         return
@@ -134,6 +135,7 @@ def iniciar_sesion() -> Optional[str]:
             UsuarioModel.activo.is_(True),
         )
     )
+    db_session().commit()
     if item is not None and item.clave == clave:
         print(f"Bienvenido, {usuario}.")
         return usuario
@@ -145,6 +147,7 @@ def _asegurar_usuario_admin() -> None:
     admin = db_session().scalar(
         select(UsuarioModel).where(UsuarioModel.nombre_usuario == "admin")
     )
+    db_session().commit()
     if admin is None:
         db_session().add(UsuarioModel(nombre_usuario="admin", clave="1234"))
         db_session().commit()
@@ -489,6 +492,48 @@ def _validar_referencias(values: dict) -> None:
                 )
 
 
+def _convertir_monto(raw_value: str) -> Decimal:
+    valor = raw_value.strip().replace("$", "").replace(" ", "")
+    if not valor:
+        raise ValueError("El monto no puede estar vacío.")
+    if "," in valor and "." in valor:
+        if valor.rfind(",") > valor.rfind("."):
+            valor = valor.replace(".", "").replace(",", ".")
+        else:
+            valor = valor.replace(",", "")
+    elif "," in valor:
+        valor = valor.replace(",", ".")
+    elif "." in valor and len(valor.rsplit(".", 1)[1]) == 3:
+        valor = valor.replace(".", "")
+    elif valor.count(".") > 1:
+        valor = valor.replace(".", "")
+    try:
+        monto = Decimal(valor)
+    except InvalidOperation as exc:
+        raise ValueError(
+            "Ingresa un monto válido, por ejemplo 68000 o 68.000$."
+        ) from exc
+    if monto < 0:
+        raise ValueError("El monto no puede ser negativo.")
+    return monto
+
+
+def _convertir_fecha_hora(raw_value: str) -> datetime:
+    try:
+        return datetime.fromisoformat(raw_value.strip())
+    except ValueError as exc:
+        raise ValueError(
+            "Usa el formato AAAA-MM-DD HH:MM, por ejemplo 2026-09-13 08:00."
+        ) from exc
+
+
+def _convertir_fecha(raw_value: str) -> date:
+    try:
+        return date.fromisoformat(raw_value.strip())
+    except ValueError as exc:
+        raise ValueError("Usa el formato AAAA-MM-DD, por ejemplo 2026-09-13.") from exc
+
+
 def _crear_registro(
     crud, model, label: str, fields: list[tuple[str, str, object]]
 ) -> None:
@@ -559,18 +604,21 @@ def _menu_entidad(
         print("4. Eliminar")
         print("5. Regresar")
         opcion = input("Seleccione una opción: ").strip()
-        if opcion == "1":
-            _crear_registro(crud, model, label, fields)
-        elif opcion == "2":
-            _mostrar_registros(crud, label)
-        elif opcion == "3":
-            _actualizar_registro(crud, label, fields)
-        elif opcion == "4":
-            _eliminar_registro(crud, label)
-        elif opcion == "5":
-            return
-        else:
-            print("Opción inválida.")
+        try:
+            if opcion == "1":
+                _crear_registro(crud, model, label, fields)
+            elif opcion == "2":
+                _mostrar_registros(crud, label)
+            elif opcion == "3":
+                _actualizar_registro(crud, label, fields)
+            elif opcion == "4":
+                _eliminar_registro(crud, label)
+            elif opcion == "5":
+                return
+            else:
+                print("Opción inválida.")
+        finally:
+            db_session().close()
 
 
 def menu_rutinas() -> None:
@@ -588,7 +636,7 @@ def menu_rutinas() -> None:
 
 def menu_pagos() -> None:
     fields = [
-        ("monto", "Monto", Decimal),
+        ("monto", "Monto", _convertir_monto),
         ("metodo_pago", "Método de pago", str),
         ("estado", "Estado", str),
         ("id_cliente", "ID del cliente (opcional)", str),
@@ -637,9 +685,24 @@ def menu_clases() -> None:
 
 def menu_asistencias() -> None:
     fields = [
+        (
+            "hora_entrada",
+            "hora_entrada (opcional, AAAA-MM-DD HH:MM)",
+            _convertir_fecha_hora,
+        ),
+        (
+            "hora_salida",
+            "hora_salida (opcional, AAAA-MM-DD HH:MM)",
+            _convertir_fecha_hora,
+        ),
         ("estado", "Estado", str),
         ("id_cliente", "ID del cliente (opcional)", str),
         ("id_clase", "ID de la clase (opcional)", str),
+        (
+            "fecha_edicion",
+            "fecha_edicion (opcional, AAAA-MM-DD)",
+            _convertir_fecha,
+        ),
     ]
     _menu_entidad(AsistenciaCrud, AsistenciaModel, "ASISTENCIAS", fields)
 
@@ -775,7 +838,7 @@ def menu_principal() -> None:
         finally:
             DB_SESSION = None
             try:
-                session.rollback()
+                session.close()
             except SQLAlchemyError:
                 session.invalidate()
 

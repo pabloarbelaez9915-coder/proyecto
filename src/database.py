@@ -27,6 +27,8 @@ if DATABASE_URL.startswith(("postgresql://", "postgresql+psycopg://")) and any(
 
 engine = create_engine(
     DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
     connect_args=(
         {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
     ),
@@ -36,6 +38,7 @@ SessionLocal = sessionmaker(
     bind=engine,
     autoflush=False,
     autocommit=False,
+    expire_on_commit=False,
 )
 
 

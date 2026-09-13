@@ -32,13 +32,17 @@ class PersistentCrud:
     @classmethod
     def get_by_id(cls, session: Session, identifier: str | UUID) -> ModelType | None:
         value = str(identifier)
-        return session.scalar(
+        item = session.scalar(
             select(cls.model).where(getattr(cls.model, cls.id_field) == value)
         )
+        session.commit()
+        return item
 
     @classmethod
     def get_all(cls, session: Session) -> list[ModelType]:
-        return list(session.scalars(select(cls.model)).all())
+        items = list(session.scalars(select(cls.model)).all())
+        session.commit()
+        return items
 
     @classmethod
     def update(
