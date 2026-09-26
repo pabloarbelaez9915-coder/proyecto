@@ -2,6 +2,6 @@ from src.crud.orm_crud import PersistentCrud
 from src.models import MembresiaModel
 
 
-class MembresiaCrud(PersistentCrud):
+class MembresiaCrud(PersistentCrud[MembresiaModel]):
     model = MembresiaModel
     id_field = "id_membresia"

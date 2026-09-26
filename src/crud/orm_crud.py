@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import DeclarativeBase, Session
 
-ModelType = TypeVar("ModelType")
+ModelType = TypeVar("ModelType", bound=DeclarativeBase)
 
 
-class PersistentCrud:
+class PersistentCrud(Generic[ModelType]):
     model: type[ModelType]
     id_field: str
 

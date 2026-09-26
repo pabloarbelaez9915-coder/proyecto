@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Callable, List, Optional, Sequence
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
@@ -122,7 +122,7 @@ def crear_usuario() -> None:
         print(f"Usuario '{item.nombre_usuario}' registrado correctamente.")
     except SQLAlchemyError as exc:
         db_session().rollback()
-        print(f"No se pudo registrar el usuario: {exc.orig}")
+        print(f"No se pudo registrar el usuario: {exc}")
 
 
 def iniciar_sesion() -> Optional[str]:
@@ -153,15 +153,6 @@ def _asegurar_usuario_admin() -> None:
         db_session().commit()
 
 
-def _asegurar_usuario_admin() -> None:
-    admin = db_session().scalar(
-        select(UsuarioModel).where(UsuarioModel.nombre_usuario == "admin")
-    )
-    if admin is None:
-        db_session().add(UsuarioModel(nombre_usuario="admin", clave="1234"))
-        db_session().commit()
-
-
 def crear_membresia() -> None:
     mostrar_titulo("CREAR MEMBRESIA")
     try:
@@ -184,7 +175,7 @@ def crear_membresia() -> None:
         print(f"Error: {exc}")
     except SQLAlchemyError as exc:
         db_session().rollback()
-        print(f"No se pudo guardar la membresía: {exc.orig}")
+        print(f"No se pudo guardar la membresía: {exc}")
 
 
 def listar_membresias() -> None:
@@ -535,7 +526,10 @@ def _convertir_fecha(raw_value: str) -> date:
 
 
 def _crear_registro(
-    crud, model, label: str, fields: list[tuple[str, str, object]]
+    crud,
+    model,
+    label: str,
+    fields: Sequence[tuple[str, str, Callable[[str], object]]],
 ) -> None:
     mostrar_titulo(f"CREAR {label}")
     values = {}
@@ -550,11 +544,11 @@ def _crear_registro(
         print(f"Error: {exc}")
     except SQLAlchemyError as exc:
         db_session().rollback()
-        print(f"No se pudo guardar el registro: {exc.orig}")
+        print(f"No se pudo guardar el registro: {exc}")
 
 
 def _actualizar_registro(
-    crud, label: str, fields: list[tuple[str, str, object]]
+    crud, label: str, fields: Sequence[tuple[str, str, Callable[[str], object]]]
 ) -> None:
     registros = _mostrar_registros(crud, label)
     if not registros:
@@ -579,7 +573,7 @@ def _actualizar_registro(
         print(f"Error: {exc}")
     except SQLAlchemyError as exc:
         db_session().rollback()
-        print(f"No se pudo actualizar el registro: {exc.orig}")
+        print(f"No se pudo actualizar el registro: {exc}")
 
 
 def _eliminar_registro(crud, label: str) -> None:
@@ -594,7 +588,10 @@ def _eliminar_registro(crud, label: str) -> None:
 
 
 def _menu_entidad(
-    crud, model, label: str, fields: list[tuple[str, str, object]]
+    crud,
+    model,
+    label: str,
+    fields: Sequence[tuple[str, str, Callable[[str], object]]],
 ) -> None:
     while True:
         mostrar_titulo(f"GESTIÓN DE {label}")

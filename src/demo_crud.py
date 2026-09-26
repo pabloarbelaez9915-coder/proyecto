@@ -18,6 +18,8 @@ def main(pausar: bool = False) -> None:
             input("Verifica CREATE en Neon y presiona Enter para continuar...")
 
         consultado = MembresiaCrud.get_by_id(session, creado.id_membresia)
+        if consultado is None:
+            raise RuntimeError("La membresía creada no se encontró al consultarla.")
         print(f"READ: {consultado.id_membresia} | {consultado.nombre}")
         if pausar:
             input("Verifica READ en Neon y presiona Enter para continuar...")
@@ -25,6 +27,8 @@ def main(pausar: bool = False) -> None:
         actualizado = MembresiaCrud.update(
             session, creado.id_membresia, {"nombre": "Demo examen actualizada"}
         )
+        if actualizado is None:
+            raise RuntimeError("La membresía creada no se encontró al actualizarla.")
         print(f"UPDATE: {actualizado.id_membresia} | {actualizado.nombre}")
         if pausar:
             input("Verifica UPDATE en Neon y presiona Enter para continuar...")

@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from src.database import SessionLocal, init_db
 from src.models import (
     AsistenciaModel,
-    Base,
     ClaseModel,
     ClienteModel,
     EntrenadorModel,

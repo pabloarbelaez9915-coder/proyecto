@@ -141,6 +141,17 @@ El proyecto cuenta con una interfaz por consola para:
 
 Este proyecto está en desarrollo académico y sirve como base para modelar un sistema de gestión deportiva con Python.
 
+## API REST con FastAPI
+
+Desde la raíz del proyecto, instala las dependencias y levanta el servidor:
+
+```powershell
+\.venv\Scripts\python.exe -m pip install -r requirements.txt
+\.venv\Scripts\python.exe -m uvicorn src.api.main:app --reload
+```
+
+Swagger estará disponible en `http://127.0.0.1:8000/docs`. Bajo `/api/v1` se exponen los cinco endpoints CRUD para usuarios, membresías, sedes, clientes, entrenadores, clases, rutinas, equipos, asistencias y pagos. Los schemas de respuesta omiten el campo `clave`.
+
 ## Migración SQLAlchemy y Neon
 
 La migración incluye modelos ORM para `clientes`, `membresias`, `entrenadores`, `sedes`, `clases`, `rutinas`, `equipos`, `asistencias` y `pagos`. Las relaciones y llaves foráneas están definidas en `src/models.py`. Los CRUD reciben una sesión SQLAlchemy y guardan cambios con `commit()`.
