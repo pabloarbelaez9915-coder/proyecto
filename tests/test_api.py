@@ -62,7 +62,24 @@ def test_membresia_crud_endpoints():
         assert "clave" not in created_user.json()
 
         paths = client.get("/openapi.json").json()["paths"]
+        resources = (
+            "usuarios",
+            "membresias",
+            "sedes",
+            "clientes",
+            "entrenadores",
+            "clases",
+            "rutinas",
+            "equipos",
+            "asistencias",
+            "pagos",
+        )
         assert len([path for path in paths if path.startswith("/api/v1/")]) == 20
+        for resource in resources:
+            collection_path = paths[f"/api/v1/{resource}"]
+            record_path = paths[f"/api/v1/{resource}/{{record_id}}"]
+            assert {"get", "post"} <= collection_path.keys()
+            assert {"get", "put", "delete"} <= record_path.keys()
 
         cors_response = client.options(
             "/api/v1/membresias",
