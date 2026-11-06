@@ -1,146 +1,33 @@
-# Proyecto Gym
+# Proyecto de gestión de gimnasio
 
-Proyecto de clase para la gestión de un gimnasio en Python.
+Proyecto académico organizado en carpetas separadas para backend y frontend.
 
-## Descripción
-
-Este proyecto implementa un sistema básico de gestión para un gimnasio, con entidades como:
-
-- Cliente
-- Membresía
-- Entrenador
-- Sede
-- Clase
-- Rutina
-- Equipo
-- Asistencia
-- Pago
-
-La estructura está pensada para representar modelos y relaciones de negocio, con identificadores UUID, fechas de registro y edición, y campos nulos cuando corresponden.
-
-## Estructura del proyecto
+## Estructura
 
 ```text
 proyecto/
-├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   └── entities/
-│       ├── __init__.py
-│       ├── asistencia.py
-│       ├── clase.py
-│       ├── clientes.py
-│       ├── entrenado.py
-│       ├── equipo.py
-│       ├── membresia.py
-│       ├── pago.py
-│       ├── rutina.py
-│       ├── sede.py
-│       └── ...
-├── tests/
-│   └── test_entidades.py
-├── README.md
-└── .gitignore
+├── Programacion_de _Software_2026_2---backend/
+│   ├── src/           # API FastAPI, modelos, CRUD y lógica del programa
+│   ├── tests/         # Pruebas automatizadas
+│   ├── requirements.txt
+│   └── README.md      # Instalación, ejecución y detalles del backend
+├── Programacion_de _Software_2026_2---frontend/
+│   └── README.md      # Carpeta preparada para el frontend
+└── explicacion_examen02.mp4
 ```
 
-## Requisitos
+El backend está implementado en Python con FastAPI y SQLAlchemy. El frontend todavía no tiene código; su carpeta queda lista para agregarlo después.
 
-- Python 3.10 o superior
-- Git
+## Ejecutar el backend
 
-## Instalación
+Abre PowerShell desde la raíz del proyecto y ejecuta:
 
-1. Clona el repositorio:
-
-```bash
-git clone https://github.com/pabloarbelaez9915-coder/proyecto.git
-cd proyecto
+```powershell
+Set-Location "Programacion_de _Software_2026_2---backend"
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m uvicorn src.api.main:app --reload
 ```
 
-2. Crea un entorno virtual (opcional, pero recomendado):
-
-```bash
-python -m venv venv
-```
-
-3. Activa el entorno virtual:
-
-- Windows:
-
-```bash
-venv\Scripts\activate
-```
-
-- Linux/macOS:
-
-```bash
-source venv/bin/activate
-```
-
-4. Ejecuta la aplicación:
-
-```bash
-python src/main.py
-```
-
-## Uso
-
-El proyecto cuenta con una interfaz por consola para:
-
-- iniciar sesión
-- crear usuario
-- gestionar clientes
-- gestionar membresías
-- gestionar sedes
-- gestionar clases y rutinas
-
-## Entidades principales
-
-### Cliente
-- id_cliente: UUID
-- primer_nombre
-- segundo_nombre (nullable)
-- primer_apellido
-- segundo_apellido (nullable)
-- correo
-- telefono (nullable)
-- clave
-- id_membresia (FK, nullable)
-
-### Membresía
-- id_membresia: UUID
-- nombre
-- precio
-- descripcion (nullable)
-- fecha_inscripcion
-- fecha_edicion (nullable)
-- activo
-
-### Entrenador
-- id_entrenador: UUID
-- primer_nombre
-- segundo_nombre (nullable)
-- primer_apellido
-- segundo_apellido (nullable)
-- correo
-- telefono (nullable)
-- clave
-- id_sede (FK, nullable)
-
-### Clase
-- id_clase: UUID
-- nombre
-- descripcion (nullable)
-- capacidad_maxima
-- horario (nullable)
-- nivel (nullable)
-- id_entrenador (FK, nullable)
-- id_sede (FK, nullable)
-
-## Estado del proyecto
-
-Este proyecto está en desarrollo académico y sirve como base para modelar un sistema de gestión deportiva con Python.
-
-## Autor
-
-Proyecto desarrollado para la clase de programación.
+La documentación interactiva de la API estará en <http://127.0.0.1:8000/docs>. Consulta el [README del backend](./Programacion_de%20_Software_2026_2---backend/README.md) para migraciones, datos de prueba y demostración CRUD.
