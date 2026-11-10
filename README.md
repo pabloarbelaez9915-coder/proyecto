@@ -29,12 +29,14 @@ npm install
 npm start
 ```
 
-La instalación con `npm install` solo hace falta la primera vez o cuando cambien las dependencias. Abre <http://localhost:4200>. Mantén las dos terminales abiertas mientras usas el sistema.
+La instalación con `npm install` solo hace falta la primera vez o cuando cambien las dependencias. Abre [http://localhost:4200](http://localhost:4200). Mantén las dos terminales abiertas mientras usas el sistema.
 
 ## 2. URL del backend
 
-La aplicación consume la API REST en **<http://127.0.0.1:8000/api/v1>**. Su documentación interactiva está en <http://127.0.0.1:8000/docs>.
+La aplicación consume la API REST en **[http://127.0.0.1:8000/api/v1](http://127.0.0.1:8000/api/v1)**. Su documentación interactiva está en [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
 ## 3. Video del punto 6
 
 [Ver o descargar el video de la entrega](./explicacion_examen02.mp4).
+
+[Ver el video del parcial](./Video_Parcial%234.mp4)
