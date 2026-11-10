@@ -1,0 +1,445 @@
+<div class="app-shell" [class.is-collapsed]="sidebarCollapsed()">
+  <aside class="sidebar" [attr.aria-label]="'Navegación principal'">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">F</div>
+      @if (!sidebarCollapsed()) {
+        <div class="brand-copy">
+          <strong>FORMA</strong>
+          <span>GESTIÓN DE GIMNASIO</span>
+        </div>
+      }
+      <button
+        class="collapse-button"
+        type="button"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarCollapsed() ? 'Expandir menú' : 'Contraer menú'"
+        [title]="sidebarCollapsed() ? 'Expandir menú' : 'Contraer menú'"
+      >
+        <span aria-hidden="true">{{ sidebarCollapsed() ? '›' : '‹' }}</span>
+      </button>
+    </div>
+
+    <div class="nav-caption">GESTIÓN</div>
+    <nav class="entity-nav">
+      @for (entity of entities; track entity.key) {
+        <button
+          type="button"
+          class="nav-item"
+          [class.active]="selectedEntity().key === entity.key"
+          (click)="selectEntity(entity)"
+          [attr.aria-current]="selectedEntity().key === entity.key ? 'page' : null"
+          [attr.aria-label]="entity.label"
+          [title]="sidebarCollapsed() ? entity.label : null"
+        >
+          <span class="nav-icon" aria-hidden="true">{{ entity.icon }}</span>
+          @if (!sidebarCollapsed()) {
+            <span class="nav-label">{{ entity.label }}</span>
+            @if (selectedEntity().key === entity.key) {
+              <span class="nav-active-mark" aria-hidden="true"></span>
+            }
+          }
+        </button>
+      }
+    </nav>
+
+    @if (!sidebarCollapsed()) {
+      <div class="sidebar-footer">
+        <span class="connection-dot"></span>
+        <span>API local · puerto 8000</span>
+      </div>
+    }
+  </aside>
+
+  <div class="main-shell">
+    <header class="topbar">
+      <div class="breadcrumbs">
+        <span>Panel de control</span>
+        <span class="breadcrumb-divider">/</span>
+        <strong>{{ selectedEntity().label }}</strong>
+      </div>
+      <div class="profile-chip">
+        <span class="profile-avatar">FG</span>
+        <span class="profile-label">Administración</span>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-line"></span> ESPACIO DE ADMINISTRACIÓN</div>
+          <h1>{{ selectedEntity().label }}</h1>
+          <p>{{ selectedEntity().description }}</p>
+        </div>
+        <div class="heading-stamp">
+          <span class="stamp-label">MÓDULO</span>
+          <span class="stamp-value">{{ selectedEntity().icon }}</span>
+        </div>
+      </div>
+
+      <section class="summary-row" aria-label="Resumen del módulo">
+        <div class="summary-card">
+          <div class="summary-icon records-icon" aria-hidden="true">▤</div>
+          <div>
+            <span class="summary-label">REGISTROS EN ESTE MÓDULO</span>
+            <strong class="summary-value">{{ records().length }}</strong>
+          </div>
+          <span class="summary-accent"></span>
+        </div>
+        <div class="summary-card summary-card-muted">
+          <div class="summary-icon api-icon" aria-hidden="true">↗</div>
+          <div>
+            <span class="summary-label">SERVICIO DE DATOS</span>
+            <strong class="summary-service"
+              ><span class="connection-dot"></span> API REST local</strong
+            >
+          </div>
+        </div>
+      </section>
+
+      @if (notice(); as currentNotice) {
+        <div
+          class="notice"
+          [class.notice-error]="currentNotice.kind === 'error'"
+          [class.notice-success]="currentNotice.kind === 'success'"
+          role="status"
+        >
+          <span class="notice-symbol" aria-hidden="true">{{
+            currentNotice.kind === 'error' ? '!' : '✓'
+          }}</span>
+          <span>{{ currentNotice.message }}</span>
+          <button
+            type="button"
+            class="notice-close"
+            aria-label="Cerrar aviso"
+            (click)="notice.set(null)"
+          >
+            ×
+          </button>
+        </div>
+      }
+
+      <section class="lookup-card" aria-label="Consulta por identificador">
+        <div class="lookup-copy">
+          <span class="lookup-icon" aria-hidden="true">⌕</span>
+          <div>
+            <strong>Consulta directa</strong>
+            <span>Busca un registro por su identificador único.</span>
+          </div>
+        </div>
+        <form
+          class="lookup-form"
+          (ngSubmit)="lookupById(lookupInput.value); lookupInput.value = ''"
+        >
+          <label class="sr-only" for="lookup-id">Identificador del registro</label>
+          <input
+            #lookupInput
+            id="lookup-id"
+            name="recordId"
+            type="text"
+            placeholder="Pega aquí el ID del registro"
+            autocomplete="off"
+            required
+          />
+          <button class="button button-outline" type="submit">
+            Consultar ID <span aria-hidden="true">↗</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="records-card" aria-label="Lista de registros">
+        <div class="records-header">
+          <div>
+            <div class="section-kicker">DIRECTORIO</div>
+            <h2>Todos los {{ selectedEntity().label.toLocaleLowerCase() }}</h2>
+            <p>Consulta, edita o elimina los registros de este módulo.</p>
+          </div>
+          <button class="button button-primary" type="button" (click)="openCreateForm()">
+            <span class="button-plus" aria-hidden="true">+</span>
+            Nuevo {{ selectedEntity().singular.toLocaleLowerCase() }}
+          </button>
+        </div>
+
+        <div class="table-toolbar">
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <span class="sr-only">Filtrar registros</span>
+            <input
+              type="search"
+              [value]="searchText()"
+              (input)="updateSearch($event)"
+              placeholder="Filtrar por nombre, ID o dato..."
+            />
+          </label>
+          <span class="result-count">
+            {{ visibleRecords().length }}
+            {{ visibleRecords().length === 1 ? 'resultado' : 'resultados' }}
+          </span>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                @for (column of columns(); track column) {
+                  <th>{{ fieldLabel(column) }}</th>
+                }
+                <th class="actions-heading">ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (loading()) {
+                <tr>
+                  <td class="table-state" [attr.colspan]="columns().length + 1">
+                    <span class="loading-spinner" aria-hidden="true"></span>
+                    Cargando registros...
+                  </td>
+                </tr>
+              } @else if (visibleRecords().length === 0) {
+                <tr>
+                  <td class="table-state empty-state" [attr.colspan]="columns().length + 1">
+                    <span class="empty-icon" aria-hidden="true">⌕</span>
+                    <strong>{{
+                      searchText() ? 'No encontramos coincidencias' : 'Aún no hay registros'
+                    }}</strong>
+                    <span>{{
+                      searchText()
+                        ? 'Prueba con otro término o limpia el filtro.'
+                        : 'Crea el primer registro de este módulo para comenzar.'
+                    }}</span>
+                    @if (!searchText()) {
+                      <button class="text-action" type="button" (click)="openCreateForm()">
+                        Crear el primer registro <span aria-hidden="true">↗</span>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @else {
+                @for (record of visibleRecords(); track record[selectedEntity().idField]) {
+                  <tr>
+                    @for (column of columns(); track column) {
+                      <td>
+                        @if (isBooleanField(column)) {
+                          <span
+                            class="status-pill"
+                            [class.status-inactive]="!fieldValue(record, column)"
+                          >
+                            <span class="status-dot"></span
+                            >{{ displayValue(fieldValue(record, column)) }}
+                          </span>
+                        } @else if (column === selectedEntity().idField) {
+                          <span class="id-cell" [title]="displayValue(fieldValue(record, column))">
+                            {{ displayValue(fieldValue(record, column)).slice(0, 8) }}…
+                          </span>
+                        } @else {
+                          <span
+                            class="cell-value"
+                            [title]="displayValue(fieldValue(record, column))"
+                          >
+                            {{ displayValue(fieldValue(record, column)) }}
+                          </span>
+                        }
+                      </td>
+                    }
+                    <td>
+                      <div class="row-actions">
+                        <button
+                          class="icon-button"
+                          type="button"
+                          title="Consultar registro"
+                          [attr.aria-label]="
+                            'Consultar ' + selectedEntity().singular.toLocaleLowerCase()
+                          "
+                          (click)="openDetails(record)"
+                        >
+                          ↗
+                        </button>
+                        <button
+                          class="icon-button"
+                          type="button"
+                          title="Editar registro"
+                          [attr.aria-label]="
+                            'Editar ' + selectedEntity().singular.toLocaleLowerCase()
+                          "
+                          (click)="openEditForm(record)"
+                        >
+                          ✎
+                        </button>
+                        <button
+                          class="icon-button icon-button-danger"
+                          type="button"
+                          title="Eliminar registro"
+                          [attr.aria-label]="
+                            'Eliminar ' + selectedEntity().singular.toLocaleLowerCase()
+                          "
+                          (click)="deleteRecord(record)"
+                        >
+                          ⌫
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <span><span class="connection-dot"></span> Datos sincronizados con la API local</span>
+          <span
+            >{{ selectedEntity().endpoint }} <span class="footer-divider">·</span> GET / POST / PUT
+            / DELETE</span
+          >
+        </div>
+      </section>
+      <footer class="page-footer">FORMA <span>·</span> SISTEMA DE GESTIÓN DE GIMNASIO</footer>
+    </main>
+  </div>
+</div>
+
+@if (formOpen()) {
+  <div class="dialog-backdrop" (click)="closeDialog()">
+    <section
+      class="dialog-card"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="
+        detailRecord() ? 'Detalle del registro' : 'Formulario de ' + selectedEntity().singular
+      "
+      (click)="$event.stopPropagation()"
+    >
+      <div class="dialog-header">
+        <div class="dialog-heading-icon">{{ selectedEntity().icon }}</div>
+        <div class="dialog-heading-copy">
+          <span class="section-kicker">{{
+            detailRecord()
+              ? 'DETALLE DEL REGISTRO'
+              : formMode() === 'create'
+                ? 'NUEVO REGISTRO'
+                : 'ACTUALIZAR INFORMACIÓN'
+          }}</span>
+          <h2>
+            {{
+              detailRecord()
+                ? 'Información de ' + selectedEntity().singular.toLocaleLowerCase()
+                : formMode() === 'create'
+                  ? 'Crear ' + selectedEntity().singular.toLocaleLowerCase()
+                  : 'Editar ' + selectedEntity().singular.toLocaleLowerCase()
+            }}
+          </h2>
+          <p>
+            {{
+              detailRecord()
+                ? 'Consulta los datos guardados en la API.'
+                : 'Completa los campos para guardar los cambios.'
+            }}
+          </p>
+        </div>
+        <button
+          class="dialog-close"
+          type="button"
+          aria-label="Cerrar ventana"
+          (click)="closeDialog()"
+        >
+          ×
+        </button>
+      </div>
+
+      @if (detailRecord(); as detail) {
+        <div class="detail-grid">
+          <div class="detail-item detail-item-wide">
+            <span>{{ fieldLabel(selectedEntity().idField) }}</span>
+            <strong class="detail-id">{{ displayValue(detail[selectedEntity().idField]) }}</strong>
+          </div>
+          @for (field of selectedEntity().fields; track field.key) {
+            <div class="detail-item" [class.detail-item-wide]="field.type === 'textarea'">
+              <span>{{ field.label }}</span>
+              <strong>{{ displayValue(detail[field.key]) }}</strong>
+            </div>
+          }
+        </div>
+        <div class="dialog-footer">
+          <button class="button button-outline" type="button" (click)="closeDialog()">
+            Cerrar
+          </button>
+          <button class="button button-primary" type="button" (click)="switchDetailToEdit()">
+            Editar registro <span aria-hidden="true">↗</span>
+          </button>
+        </div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="saveRecord()">
+          <div class="form-grid">
+            @for (field of selectedEntity().fields; track field.key) {
+              @if (field.type === 'checkbox') {
+                <label class="checkbox-field form-field-wide">
+                  <input [formControlName]="field.key" type="checkbox" />
+                  <span class="checkbox-visual"></span>
+                  <span class="checkbox-copy">
+                    <strong>{{ field.label }}</strong>
+                    <small>El registro estará disponible en el sistema.</small>
+                  </span>
+                </label>
+              } @else {
+                <label class="form-field" [class.form-field-wide]="field.type === 'textarea'">
+                  <span class="field-label"
+                    >{{ field.label }}
+                    @if (
+                      field.required && (formMode() === 'create' || field.requiredOnEdit !== false)
+                    ) {
+                      <b>*</b>
+                    }
+                  </span>
+                  @if (field.type === 'textarea') {
+                    <textarea
+                      [formControlName]="field.key"
+                      [attr.maxlength]="field.maxLength ?? null"
+                      rows="3"
+                      [placeholder]="field.placeholder ?? ''"
+                    ></textarea>
+                  } @else {
+                    <input
+                      [formControlName]="field.key"
+                      [type]="field.type"
+                      [attr.maxlength]="field.maxLength ?? null"
+                      [attr.step]="field.step ?? null"
+                      [placeholder]="field.placeholder ?? ''"
+                      [autocomplete]="field.type === 'password' ? 'new-password' : 'off'"
+                    />
+                  }
+                  @if (field.type === 'password' && formMode() === 'edit') {
+                    <small class="field-hint"
+                      >Déjalo vacío para conservar la contraseña actual.</small
+                    >
+                  }
+                  @if (hasError(field)) {
+                    <small class="field-error">
+                      @if (form.controls[field.key].hasError('required')) {
+                        Este campo es obligatorio.
+                      } @else if (form.controls[field.key].hasError('email')) {
+                        Ingresa un correo electrónico válido.
+                      } @else {
+                        El valor supera la longitud permitida.
+                      }
+                    </small>
+                  }
+                </label>
+              }
+            }
+          </div>
+          <div class="dialog-footer">
+            <button class="button button-outline" type="button" (click)="closeDialog()">
+              Cancelar
+            </button>
+            <button class="button button-primary" type="submit" [disabled]="saving()">
+              @if (saving()) {
+                <span class="button-spinner" aria-hidden="true"></span> Guardando...
+              } @else {
+                {{ formMode() === 'create' ? 'Crear registro' : 'Guardar cambios' }}
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+  </div>
+}

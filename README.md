@@ -1,33 +1,40 @@
-# Proyecto de gestión de gimnasio
+# FORMA — Gestión de gimnasio
 
-Proyecto académico organizado en carpetas separadas para backend y frontend.
+Frontend Angular para administrar los módulos del gimnasio mediante la API local del proyecto.
 
-## Estructura
+**Repositorio de entrega:** [pabloarbelaez9915-coder/proyecto](https://github.com/pabloarbelaez9915-coder/proyecto)
 
-```text
-proyecto/
-├── Programacion_de _Software_2026_2---backend/
-│   ├── src/           # API FastAPI, modelos, CRUD y lógica del programa
-│   ├── tests/         # Pruebas automatizadas
-│   ├── requirements.txt
-│   └── README.md      # Instalación, ejecución y detalles del backend
-├── Programacion_de _Software_2026_2---frontend/
-│   └── README.md      # Carpeta preparada para el frontend
-└── explicacion_examen02.mp4
-```
+## 1. Cómo ejecutar el proyecto en local
 
-El backend está implementado en Python con FastAPI y SQLAlchemy. El frontend todavía no tiene código; su carpeta queda lista para agregarlo después.
+Se necesitan dos terminales de PowerShell abiertas al mismo tiempo: una para el backend y otra para el frontend. Ejecuta los comandos desde la raíz del repositorio.
 
-## Ejecutar el backend
+### Terminal 1: API
 
-Abre PowerShell desde la raíz del proyecto y ejecuta:
+El entorno virtual está en la raíz del repositorio. Si todavía no existe, créalo primero con `python -m venv .venv`.
 
 ```powershell
-Set-Location "Programacion_de _Software_2026_2---backend"
-python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+Set-Location ".\Programacion_de _Software_2026_2---backend"
 python -m pip install -r requirements.txt
 python -m uvicorn src.api.main:app --reload
 ```
 
-La documentación interactiva de la API estará en <http://127.0.0.1:8000/docs>. Consulta el [README del backend](./Programacion_de%20_Software_2026_2---backend/README.md) para migraciones, datos de prueba y demostración CRUD.
+La instalación de dependencias solo hace falta la primera vez o cuando cambien los requisitos.
+
+### Terminal 2: frontend
+
+```powershell
+Set-Location ".\Programacion_de _Software_2026_2---frontend"
+npm install
+npm start
+```
+
+La instalación con `npm install` solo hace falta la primera vez o cuando cambien las dependencias. Abre <http://localhost:4200>. Mantén las dos terminales abiertas mientras usas el sistema.
+
+## 2. URL del backend
+
+La aplicación consume la API REST en **<http://127.0.0.1:8000/api/v1>**. Su documentación interactiva está en <http://127.0.0.1:8000/docs>.
+
+## 3. Video del punto 6
+
+[Ver o descargar el video de la entrega](./explicacion_examen02.mp4).
