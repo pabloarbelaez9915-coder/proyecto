@@ -1,3 +1,18 @@
+@if (!auth.isConfigured()) {
+  <main class="auth-setup-required">
+    <section>
+      <h1>Configura Firebase Authentication</h1>
+      <p>
+        Completa la configuración del proyecto en <code>src/app/firebase.config.ts</code> para
+        habilitar el inicio de sesión.
+      </p>
+    </section>
+  </main>
+} @else if (!auth.authReady()) {
+  <main class="auth-loading" role="status">Comprobando sesión…</main>
+} @else if (!auth.user()) {
+  <app-login />
+} @else {
 <div class="app-shell" [class.is-collapsed]="sidebarCollapsed()">
   <aside class="sidebar" [attr.aria-label]="'Navegación principal'">
     <div class="brand">
@@ -59,7 +74,8 @@
       </div>
       <div class="profile-chip">
         <span class="profile-avatar">FG</span>
-        <span class="profile-label">Administración</span>
+        <span class="profile-label">{{ auth.user()?.email }}</span>
+        <button class="button button-outline" type="button" (click)="signOut()">Cerrar sesión</button>
       </div>
     </header>
 
@@ -296,6 +312,7 @@
     </main>
   </div>
 </div>
+}
 
 @if (formOpen()) {
   <div class="dialog-backdrop" (click)="closeDialog()">

@@ -18,6 +18,14 @@ npm start
 
 Abre <http://localhost:4200>. Para la demostración, mantén también el backend activo. El frontend consume `http://127.0.0.1:8000/api/v1`; la documentación de la API está en <http://127.0.0.1:8000/docs>.
 
+## Firebase Authentication
+
+El inicio de sesión usa correo y contraseña. No hay registro público: el administrador crea las cuentas desde **Firebase Console > Authentication > Users**. La opción de proveedor **Email/Password** debe estar habilitada.
+
+Completa los valores públicos de la aplicación web en `src/app/firebase.config.ts` usando la configuración que muestra Firebase Console al registrar una aplicación web. Estos valores identifican el proyecto; no pegues aquí la clave privada de una cuenta de servicio.
+
+Al iniciar sesión, Angular añade el ID token de Firebase a las solicitudes de la API. La API verifica ese token, por lo que también necesita Firebase Admin configurado en el backend. Sigue las instrucciones de autenticación en el README del backend.
+
 ## Módulos
 
 Usuarios, membresías, sedes, clientes, entrenadores, clases, rutinas, equipos, asistencias y pagos. Cada módulo permite listar, consultar un registro por ID, crear, editar y eliminar. Las contraseñas no aparecen en las respuestas del backend; al editar, el campo se deja vacío para conservar la existente.

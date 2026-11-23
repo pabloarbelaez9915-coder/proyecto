@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.api.main import app
+from src.api.auth import get_current_user
 from src.database import get_db
 from src.models import Base
 
@@ -25,6 +26,7 @@ def test_membresia_crud_endpoints():
             session.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = lambda: {"uid": "test-user"}
     client = TestClient(app)
 
     try:
@@ -92,3 +94,55 @@ def test_membresia_crud_endpoints():
     finally:
         app.dependency_overrides.clear()
         engine.dispose()
+
+
+def test_api_rejects_requests_without_firebase_token():
+    client = TestClient(app)
+
+    response = client.get("/api/v1/membresias")
+
+    assert response.status_code == 401
+    assert response.headers["www-authenticate"] == "Bearer"
+
+
+def test_api_rejects_invalid_firebase_token(monkeypatch):
+    from src.api import auth
+
+    def reject_token(*_args, **_kwargs):
+        raise ValueError("invalid token")
+
+    monkeypatch.setattr(auth, "_get_firebase_app", lambda: None)
+    monkeypatch.setattr(auth.auth, "verify_id_token", reject_token)
+    client = TestClient(app)
+
+    response = client.get(
+        "/api/v1/membresias",
+        headers={"Authorization": "Bearer invalid-token"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_api_reports_missing_firebase_admin_credentials(monkeypatch):
+    from google.auth.exceptions import DefaultCredentialsError
+
+    from src.api import auth
+
+    def missing_app():
+        raise ValueError("Firebase Admin has not been initialized.")
+
+    def missing_credentials():
+        raise DefaultCredentialsError("No credentials found.")
+
+    monkeypatch.setattr(auth.firebase_admin, "get_app", missing_app)
+    monkeypatch.setattr(auth.credentials, "ApplicationDefault", missing_credentials)
+    monkeypatch.delenv("FIREBASE_SERVICE_ACCOUNT", raising=False)
+    monkeypatch.delenv("FIREBASE_PROJECT_ID", raising=False)
+    client = TestClient(app)
+
+    response = client.get(
+        "/api/v1/membresias",
+        headers={"Authorization": "Bearer firebase-id-token"},
+    )
+
+    assert response.status_code == 503

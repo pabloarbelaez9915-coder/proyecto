@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import {
   FormControl,
   FormRecord,
@@ -10,6 +10,8 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from './api.service';
 import { ENTITIES, EntityDefinition, FieldDefinition } from './entity.config';
+import { FirebaseAuthService } from './firebase-auth.service';
+import { LoginComponent } from './login.component';
 
 type FormValue = string | number | boolean | null;
 type RecordData = Record<string, unknown>;
@@ -17,13 +19,14 @@ type Notice = { kind: 'success' | 'error'; message: string };
 type FormMode = 'create' | 'edit';
 
 @Component({
-  imports: [ReactiveFormsModule],
+  imports: [LoginComponent, ReactiveFormsModule],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',
 })
 export class App {
   private readonly api = inject(ApiService);
+  readonly auth = inject(FirebaseAuthService);
 
   readonly entities = ENTITIES;
   readonly selectedEntity = signal<EntityDefinition>(ENTITIES[3]);
@@ -60,7 +63,19 @@ export class App {
   });
 
   constructor() {
-    void this.loadRecords();
+    effect(() => {
+      if (!this.auth.isConfigured() || !this.auth.authReady()) {
+        return;
+      }
+      if (this.auth.user()) {
+        untracked(() => void this.loadRecords());
+      } else {
+        this.records.set([]);
+        this.formOpen.set(false);
+        this.detailRecord.set(null);
+        this.selectedRecord.set(null);
+      }
+    });
   }
 
   selectEntity(entity: EntityDefinition): void {
@@ -230,6 +245,15 @@ export class App {
     }
   }
 
+  async signOut(): Promise<void> {
+    try {
+      await this.auth.signOut();
+      this.notice.set(null);
+    } catch (error) {
+      this.showError(error);
+    }
+  }
+
   closeDialog(): void {
     this.formOpen.set(false);
     this.detailRecord.set(null);
@@ -361,6 +385,8 @@ export class App {
           'El registro entra en conflicto con datos existentes o está relacionado con otros registros.';
       } else if (error.status === 404) {
         message = 'No se encontró el registro solicitado.';
+      } else if (error.status === 401) {
+        message = 'Tu sesión expiró o no es válida. Inicia sesión de nuevo.';
       } else {
         message = `La API respondió con el código ${error.status}.`;
       }

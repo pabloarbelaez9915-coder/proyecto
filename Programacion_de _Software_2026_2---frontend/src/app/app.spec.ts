@@ -1,15 +1,27 @@
 import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { App } from './app';
+import { FirebaseAuthService } from './firebase-auth.service';
 
 describe('App', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(async () => {
+    const auth = {
+      isConfigured: () => true,
+      authReady: signal(true),
+      user: signal({ email: 'admin@example.com' }),
+      signOut: async () => undefined,
+    };
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: FirebaseAuthService, useValue: auth },
+      ],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);
   });
@@ -20,6 +32,7 @@ describe('App', () => {
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
     httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes/').flush([]);
     expect(fixture.componentInstance).toBeTruthy();
   });

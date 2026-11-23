@@ -4,13 +4,18 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from src.api.auth import get_current_user
 from src.api.schemas import build_schemas
 from src.database import get_db
 
 
 def build_crud_router(model: type, resource: str, id_field: str) -> APIRouter:
     create_schema, update_schema, read_schema = build_schemas(model)
-    router = APIRouter(prefix=f"/{resource}", tags=[resource.capitalize()])
+    router = APIRouter(
+        prefix=f"/{resource}",
+        tags=[resource.capitalize()],
+        dependencies=[Depends(get_current_user)],
+    )
 
     def find_record(db: Session, record_id: str):
         return db.scalar(select(model).where(getattr(model, id_field) == record_id))

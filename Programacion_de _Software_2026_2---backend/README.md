@@ -134,6 +134,26 @@ python -m uvicorn src.api.main:app --reload
 
 Swagger estará disponible en `http://127.0.0.1:8000/docs`. Bajo `/api/v1` se exponen los cinco endpoints CRUD para usuarios, membresías, sedes, clientes, entrenadores, clases, rutinas, equipos, asistencias y pagos. Los schemas de respuesta omiten el campo `clave`.
 
+### Autenticación con Firebase
+
+Todos los endpoints CRUD bajo `/api/v1` requieren un ID token válido de Firebase Authentication. La aplicación Angular inicia sesión con correo y contraseña y envía el token automáticamente. La ruta raíz `/` y la documentación `/docs` permanecen públicas.
+
+1. En Firebase Console, habilita **Authentication > Sign-in method > Email/Password** y crea las cuentas permitidas en **Authentication > Users**.
+2. Copia `.env.example` como `.env` y define `FIREBASE_PROJECT_ID`.
+3. Configura credenciales de Firebase Admin localmente. Puedes exportar el JSON de una cuenta de servicio a la variable `FIREBASE_SERVICE_ACCOUNT` en tu entorno o usar Application Default Credentials. Nunca subas el JSON de la cuenta de servicio al repositorio.
+4. Completa la configuración web pública de Firebase en `Programacion_de _Software_2026_2---frontend/src/app/firebase.config.ts`.
+5. Instala los requisitos y ejecuta la API. Si faltan credenciales de Firebase Admin, los endpoints protegidos responden `503`; sin un token válido responden `401`.
+
+Ejemplo en PowerShell para definir las variables solo en la terminal actual:
+
+```powershell
+$env:FIREBASE_PROJECT_ID = "tu-project-id"
+$env:FIREBASE_SERVICE_ACCOUNT = Get-Content "C:\ruta-segura\firebase-service-account.json" -Raw
+python -m uvicorn src.api.main:app --reload
+```
+
+En un hosting de backend, define esas mismas variables como configuración/secretos del servicio. No reutilices el JSON de la cuenta de servicio en el frontend.
+
 ## Migración SQLAlchemy y Neon
 
 La migración incluye modelos ORM para `clientes`, `membresias`, `entrenadores`, `sedes`, `clases`, `rutinas`, `equipos`, `asistencias` y `pagos`. Las relaciones y llaves foráneas están definidas en `src/models.py`. Los CRUD reciben una sesión SQLAlchemy y guardan cambios con `commit()`.

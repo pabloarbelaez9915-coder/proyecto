@@ -3,6 +3,29 @@
   min-height: 100vh;
 }
 
+.auth-setup-required,
+.auth-loading {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background: #181b22;
+  color: #f0f1f5;
+}
+
+.auth-setup-required section {
+  max-width: 560px;
+  padding: 28px;
+  border: 1px solid #30343f;
+  border-radius: 16px;
+  background: #1d2028;
+}
+
+.auth-setup-required p {
+  color: #a4a8b4;
+  line-height: 1.6;
+}
+
 .app-shell {
   --sidebar-width: 258px;
   --surface: #1d2028;

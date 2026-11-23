@@ -40,3 +40,25 @@ La aplicación consume la API REST en **[http://127.0.0.1:8000/api/v1](http://12
 [Ver o descargar el video de la entrega](./explicacion_examen02.mp4).
 
 [Ver el video del parcial](./Video_Parcial%234.mp4)
+
+## 4. Despliegue continuo del frontend
+
+El frontend incluye una automatización de GitHub Actions en [.github/workflows/deploy-frontend.yml](./.github/workflows/deploy-frontend.yml).
+
+- Los Pull Requests hacia `dev` ejecutan una compilación de Angular.
+- Un merge o push hacia `dev` compila y publica el frontend en Firebase Hosting.
+- Firebase sirve la carpeta `dist/gimnasio/browser` y redirige las rutas de Angular a `index.html`.
+
+Configuración necesaria antes del primer despliegue:
+
+1. Crear un proyecto de Firebase Hosting desde Firebase Console.
+2. En el repositorio de GitHub, abrir **Settings > Secrets and variables > Actions**.
+3. Crear `FIREBASE_PROJECT_ID` con el identificador del proyecto.
+4. Crear `FIREBASE_SERVICE_ACCOUNT` con el contenido JSON de una cuenta de servicio autorizada.
+5. Ejecutar el merge hacia `dev` para iniciar el despliegue automático.
+
+La cuenta de servicio y sus credenciales no deben guardarse en el repositorio. No los compartas en el README, en capturas ni en el código.
+
+## 5. Acceso con Firebase Authentication
+
+El frontend requiere inicio de sesión por correo y contraseña. Las cuentas se crean desde Firebase Console; no hay registro público. La API FastAPI valida el ID token en todos los endpoints `/api/v1`. Para completar la configuración, habilita Email/Password, coloca la configuración pública de la aplicación web en `Programacion_de _Software_2026_2---frontend/src/app/firebase.config.ts` y configura las credenciales privadas de Firebase Admin solo en el entorno del backend. Consulta los pasos detallados en los README del frontend y backend.
