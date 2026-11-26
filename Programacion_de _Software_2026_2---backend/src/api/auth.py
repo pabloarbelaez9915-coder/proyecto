@@ -66,6 +66,14 @@ def get_current_user(
     app = _get_firebase_app()
     try:
         return auth.verify_id_token(token.credentials, app=app, check_revoked=True)
+    except DefaultCredentialsError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "No hay credenciales de Firebase Admin disponibles. "
+                "Configura FIREBASE_SERVICE_ACCOUNT o Application Default Credentials."
+            ),
+        ) from exc
     except (ValueError, FirebaseError) as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

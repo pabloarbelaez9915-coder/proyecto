@@ -146,3 +146,25 @@ def test_api_reports_missing_firebase_admin_credentials(monkeypatch):
     )
 
     assert response.status_code == 503
+
+
+def test_api_reports_missing_credentials_when_verifying_token(monkeypatch):
+    from google.auth.exceptions import DefaultCredentialsError
+
+    from src.api import auth
+
+    monkeypatch.setattr(auth, "_get_firebase_app", lambda: None)
+
+    def missing_credentials(*_args, **_kwargs):
+        raise DefaultCredentialsError("No credentials found.")
+
+    monkeypatch.setattr(auth.auth, "verify_id_token", missing_credentials)
+    client = TestClient(app)
+
+    response = client.get(
+        "/api/v1/membresias",
+        headers={"Authorization": "Bearer firebase-id-token"},
+    )
+
+    assert response.status_code == 503
+    assert "FIREBASE_SERVICE_ACCOUNT" in response.json()["detail"]

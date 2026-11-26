@@ -30,7 +30,7 @@ Al iniciar sesión, Angular añade el ID token de Firebase a las solicitudes de 
 
 Usuarios, membresías, sedes, clientes, entrenadores, clases, rutinas, equipos, asistencias y pagos. Cada módulo permite listar, consultar un registro por ID, crear, editar y eliminar. Las contraseñas no aparecen en las respuestas del backend; al editar, el campo se deja vacío para conservar la existente.
 
-Las colecciones usan `GET /recurso/` y `POST /recurso/` con barra final; las operaciones por registro usan `/{id}`. Después de crear o editar, la tabla refleja el registro devuelto por la API; al eliminar, se quita de la tabla al confirmar la respuesta. Las referencias a otras entidades (`id_cliente`, `id_sede`, etc.) se ingresan como UUID. Para comprobar un registro por ID, usa el campo «Consulta directa» de la parte superior.
+Las colecciones usan `GET /recurso` y `POST /recurso` sin barra final; las operaciones por registro usan `/{id}`. Después de crear o editar, la tabla refleja el registro devuelto por la API; al eliminar, se quita de la tabla al confirmar la respuesta. Las referencias a otras entidades (`id_cliente`, `id_sede`, etc.) se ingresan como UUID. Para comprobar un registro por ID, usa el campo «Consulta directa» de la parte superior.
 
 ## Verificar la compilación
 

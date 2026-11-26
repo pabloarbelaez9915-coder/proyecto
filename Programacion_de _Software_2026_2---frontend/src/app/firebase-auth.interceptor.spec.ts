@@ -32,12 +32,12 @@ describe('firebaseAuthInterceptor', () => {
   it('adds the Firebase ID token to API requests', async () => {
     const result = firstValueFrom(
       TestBed.inject(HttpClient).get(
-        'http://127.0.0.1:8000/api/v1/clientes/',
+        'http://127.0.0.1:8000/api/v1/clientes',
       ),
     );
     await Promise.resolve();
 
-    const request = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes/');
+    const request = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes');
     expect(request.request.headers.get('Authorization')).toBe('Bearer firebase-id-token');
     request.flush([]);
     await result;

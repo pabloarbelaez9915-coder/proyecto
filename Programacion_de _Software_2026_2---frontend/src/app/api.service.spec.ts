@@ -21,7 +21,7 @@ describe('ApiService', () => {
 
   it('uses the local API for collection, item, create, update and delete requests', () => {
     api.list('clientes').subscribe();
-    const listRequest = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes/');
+    const listRequest = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes');
     expect(listRequest.request.method).toBe('GET');
     listRequest.flush([]);
 
@@ -32,7 +32,7 @@ describe('ApiService', () => {
 
     const payload = { primer_nombre: 'Ana' };
     api.create('clientes', payload).subscribe();
-    const createRequest = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes/');
+    const createRequest = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes');
     expect(createRequest.request.method).toBe('POST');
     expect(createRequest.request.body).toEqual(payload);
     createRequest.flush({ id_cliente: 'cliente-123' });

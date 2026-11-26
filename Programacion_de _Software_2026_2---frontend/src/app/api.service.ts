@@ -9,7 +9,7 @@ export class ApiService {
   private readonly http = inject(HttpClient);
 
   list<T>(endpoint: string): Observable<T[]> {
-    return this.http.get<T[]>(`${API_BASE_URL}/${endpoint}/`);
+    return this.http.get<T[]>(`${API_BASE_URL}/${endpoint}`);
   }
 
   get<T>(endpoint: string, id: string): Observable<T> {
@@ -17,7 +17,7 @@ export class ApiService {
   }
 
   create<T>(endpoint: string, payload: Record<string, unknown>): Observable<T> {
-    return this.http.post<T>(`${API_BASE_URL}/${endpoint}/`, payload);
+    return this.http.post<T>(`${API_BASE_URL}/${endpoint}`, payload);
   }
 
   update<T>(endpoint: string, id: string, payload: Record<string, unknown>): Observable<T> {

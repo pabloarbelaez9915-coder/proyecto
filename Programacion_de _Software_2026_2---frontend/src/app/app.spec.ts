@@ -33,14 +33,14 @@ describe('App', () => {
   it('should create the app', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes/').flush([]);
+    httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes').flush([]);
     expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('should render the customer module with a collapsible navigation', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes/').flush([]);
+    httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes').flush([]);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -57,7 +57,7 @@ describe('App', () => {
     );
     expect(membershipsButton?.textContent).not.toContain('Membresías');
     membershipsButton?.click();
-    const membershipsRequest = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/membresias/');
+    const membershipsRequest = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/membresias');
     membershipsRequest.flush([]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -85,7 +85,7 @@ describe('App', () => {
     try {
       const fixture = TestBed.createComponent(App);
       fixture.detectChanges();
-      httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes/').flush([]);
+      httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes').flush([]);
       await fixture.whenStable();
       fixture.detectChanges();
 
@@ -105,7 +105,7 @@ describe('App', () => {
   it('adds a created record from the API response without a second list request', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes/').flush([]);
+    httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes').flush([]);
     await fixture.whenStable();
 
     const app = fixture.componentInstance;
@@ -116,7 +116,7 @@ describe('App', () => {
     app.form.controls['clave'].setValue('secreto');
 
     const savePromise = app.saveRecord();
-    const createRequest = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes/');
+    const createRequest = httpTesting.expectOne('http://127.0.0.1:8000/api/v1/clientes');
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush({
       id_cliente: 'cliente-456',
