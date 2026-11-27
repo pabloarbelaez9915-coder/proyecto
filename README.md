@@ -1,146 +1,64 @@
-# Proyecto Gym
+# FORMA — Gestión de gimnasio
 
-Proyecto de clase para la gestión de un gimnasio en Python.
+Frontend Angular para administrar los módulos del gimnasio mediante la API local del proyecto.
 
-## Descripción
+**Repositorio de entrega:** [pabloarbelaez9915-coder/proyecto](https://github.com/pabloarbelaez9915-coder/proyecto)
 
-Este proyecto implementa un sistema básico de gestión para un gimnasio, con entidades como:
+## 1. Cómo ejecutar el proyecto en local
 
-- Cliente
-- Membresía
-- Entrenador
-- Sede
-- Clase
-- Rutina
-- Equipo
-- Asistencia
-- Pago
+Se necesitan dos terminales de PowerShell abiertas al mismo tiempo: una para el backend y otra para el frontend. Ejecuta los comandos desde la raíz del repositorio.
 
-La estructura está pensada para representar modelos y relaciones de negocio, con identificadores UUID, fechas de registro y edición, y campos nulos cuando corresponden.
+### Terminal 1: API
 
-## Estructura del proyecto
+El entorno virtual está en la raíz del repositorio. Si todavía no existe, créalo primero con `python -m venv .venv`.
 
-```text
-proyecto/
-├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   └── entities/
-│       ├── __init__.py
-│       ├── asistencia.py
-│       ├── clase.py
-│       ├── clientes.py
-│       ├── entrenado.py
-│       ├── equipo.py
-│       ├── membresia.py
-│       ├── pago.py
-│       ├── rutina.py
-│       ├── sede.py
-│       └── ...
-├── tests/
-│   └── test_entidades.py
-├── README.md
-└── .gitignore
+```powershell
+.\.venv\Scripts\Activate.ps1
+Set-Location ".\Programacion_de _Software_2026_2---backend"
+python -m pip install -r requirements.txt
+python -m uvicorn src.api.main:app --reload
 ```
 
-## Requisitos
+La instalación de dependencias solo hace falta la primera vez o cuando cambien los requisitos.
 
-- Python 3.10 o superior
-- Git
+### Terminal 2: frontend
 
-## Instalación
-
-1. Clona el repositorio:
-
-```bash
-git clone https://github.com/pabloarbelaez9915-coder/proyecto.git
-cd proyecto
+```powershell
+Set-Location ".\Programacion_de _Software_2026_2---frontend"
+npm install
+npm start
 ```
 
-2. Crea un entorno virtual (opcional, pero recomendado):
+La instalación con `npm install` solo hace falta la primera vez o cuando cambien las dependencias. Abre [http://localhost:4200](http://localhost:4200). Mantén las dos terminales abiertas mientras usas el sistema.
 
-```bash
-python -m venv venv
-```
+## 2. URL del backend
 
-3. Activa el entorno virtual:
+La aplicación consume la API REST en **[http://127.0.0.1:8000/api/v1](http://127.0.0.1:8000/api/v1)**. Su documentación interactiva está en [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-- Windows:
+## 3. Video del punto 6
 
-```bash
-venv\Scripts\activate
-```
+[Ver o descargar el video de la entrega](./explicacion_examen02.mp4).
 
-- Linux/macOS:
+[Ver el video del parcial](./Video_Parcial%234.mp4)
 
-```bash
-source venv/bin/activate
-```
+## 4. Despliegue continuo del frontend
 
-4. Ejecuta la aplicación:
+El frontend incluye una automatización de GitHub Actions en [.github/workflows/deploy-frontend.yml](./.github/workflows/deploy-frontend.yml).
 
-```bash
-python src/main.py
-```
+- Los Pull Requests hacia `dev` ejecutan una compilación de Angular.
+- Un merge o push hacia `dev` compila y publica el frontend en Firebase Hosting.
+- Firebase sirve la carpeta `dist/gimnasio/browser` y redirige las rutas de Angular a `index.html`.
 
-## Uso
+Configuración necesaria antes del primer despliegue:
 
-El proyecto cuenta con una interfaz por consola para:
+1. Crear un proyecto de Firebase Hosting desde Firebase Console.
+2. En el repositorio de GitHub, abrir **Settings > Secrets and variables > Actions**.
+3. Crear `FIREBASE_PROJECT_ID` con el identificador del proyecto.
+4. Crear `FIREBASE_SERVICE_ACCOUNT` con el contenido JSON de una cuenta de servicio autorizada.
+5. Ejecutar el merge hacia `dev` para iniciar el despliegue automático.
 
-- iniciar sesión
-- crear usuario
-- gestionar clientes
-- gestionar membresías
-- gestionar sedes
-- gestionar clases y rutinas
+La cuenta de servicio y sus credenciales no deben guardarse en el repositorio. No los compartas en el README, en capturas ni en el código.
 
-## Entidades principales
+## 5. Acceso con Firebase Authentication
 
-### Cliente
-- id_cliente: UUID
-- primer_nombre
-- segundo_nombre (nullable)
-- primer_apellido
-- segundo_apellido (nullable)
-- correo
-- telefono (nullable)
-- clave
-- id_membresia (FK, nullable)
-
-### Membresía
-- id_membresia: UUID
-- nombre
-- precio
-- descripcion (nullable)
-- fecha_inscripcion
-- fecha_edicion (nullable)
-- activo
-
-### Entrenador
-- id_entrenador: UUID
-- primer_nombre
-- segundo_nombre (nullable)
-- primer_apellido
-- segundo_apellido (nullable)
-- correo
-- telefono (nullable)
-- clave
-- id_sede (FK, nullable)
-
-### Clase
-- id_clase: UUID
-- nombre
-- descripcion (nullable)
-- capacidad_maxima
-- horario (nullable)
-- nivel (nullable)
-- id_entrenador (FK, nullable)
-- id_sede (FK, nullable)
-
-## Estado del proyecto
-
-Este proyecto está en desarrollo académico y sirve como base para modelar un sistema de gestión deportiva con Python.
-
-## Autor
-
-Proyecto desarrollado para la clase de programación.
+El frontend requiere inicio de sesión por correo y contraseña. Las cuentas se crean desde Firebase Console; no hay registro público. La API FastAPI valida el ID token en todos los endpoints `/api/v1`. Para completar la configuración, habilita Email/Password, coloca la configuración pública de la aplicación web en `Programacion_de _Software_2026_2---frontend/src/app/firebase.config.ts` y configura las credenciales privadas de Firebase Admin solo en el entorno del backend. Consulta los pasos detallados en los README del frontend y backend.
