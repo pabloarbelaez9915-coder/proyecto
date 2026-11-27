@@ -12,6 +12,7 @@ import { ApiService } from './api.service';
 import { ENTITIES, EntityDefinition, FieldDefinition } from './entity.config';
 import { FirebaseAuthService } from './firebase-auth.service';
 import { LoginComponent } from './login.component';
+import { environment } from '../environments/environment';
 
 type FormValue = string | number | boolean | null;
 type RecordData = Record<string, unknown>;
@@ -375,7 +376,7 @@ export class App {
     if (error instanceof HttpErrorResponse) {
       if (error.status === 0) {
         message =
-          'No hay conexión con la API. Verifica que el backend esté ejecutándose en http://127.0.0.1:8000.';
+          `No hay conexión con la API. Verifica que el backend esté disponible en ${environment.apiBaseUrl}.`;
       } else if (typeof error.error?.detail === 'string') {
         message = error.error.detail;
       } else if (error.status === 422) {

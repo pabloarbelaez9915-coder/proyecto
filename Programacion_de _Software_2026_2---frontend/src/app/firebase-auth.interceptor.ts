@@ -1,12 +1,11 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { from, switchMap } from 'rxjs';
+import { environment } from '../environments/environment';
 import { FirebaseAuthService } from './firebase-auth.service';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
-
 export const firebaseAuthInterceptor: HttpInterceptorFn = (request, next) => {
-  if (!request.url.startsWith(API_BASE_URL)) {
+  if (!request.url.startsWith(environment.apiBaseUrl)) {
     return next(request);
   }
 
