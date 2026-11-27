@@ -1,0 +1,50 @@
+<main class="login-page">
+  <section class="login-card" aria-labelledby="login-title">
+    <div class="login-brand" aria-hidden="true">F</div>
+    <p class="login-eyebrow">FORMA · GESTIÓN DE GIMNASIO</p>
+    <h1 id="login-title">Iniciar sesión</h1>
+    <p class="login-description">Ingresa con la cuenta que te proporcionó el administrador.</p>
+
+    @if (auth.authError()) {
+      <div class="login-error" role="alert">{{ auth.authError() }}</div>
+    }
+
+    @if (errorMessage()) {
+      <div class="login-error" role="alert">{{ errorMessage() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        Correo electrónico
+        <input
+          formControlName="email"
+          type="email"
+          autocomplete="username"
+          placeholder="nombre@ejemplo.com"
+        />
+      </label>
+      @if (form.controls.email.invalid && form.controls.email.touched) {
+        <small class="login-field-error">Ingresa un correo electrónico válido.</small>
+      }
+
+      <label>
+        Contraseña
+        <input
+          formControlName="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Tu contraseña"
+        />
+      </label>
+      @if (form.controls.password.invalid && form.controls.password.touched) {
+        <small class="login-field-error">La contraseña es obligatoria.</small>
+      }
+
+      <button type="submit" [disabled]="busy()">
+        {{ busy() ? 'Verificando…' : 'Entrar' }}
+      </button>
+    </form>
+
+    <p class="login-help">¿Necesitas acceso? Solicita una cuenta al administrador.</p>
+  </section>
+</main>

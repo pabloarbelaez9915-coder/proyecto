@@ -1,0 +1,126 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.login-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse at 86% 9%, rgb(112 128 194 / 10%), transparent 30%),
+    #181b22;
+  color: #f0f1f5;
+}
+
+.login-card {
+  width: min(100%, 420px);
+  padding: 38px;
+  border: 1px solid #30343f;
+  border-radius: 20px;
+  background: #1d2028;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 25%);
+}
+
+.login-brand {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #e0e5ff, #a9b8f5);
+  color: #242a3a;
+  font-family: Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.login-eyebrow {
+  margin: 24px 0 8px;
+  color: #aeb8e8;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.login-card h1 {
+  margin: 0;
+  font-size: 27px;
+}
+
+.login-description,
+.login-help {
+  color: #a4a8b4;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.login-card form {
+  display: grid;
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.login-card label {
+  display: grid;
+  gap: 8px;
+  color: #d7d9e2;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.login-card input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #393e4b;
+  border-radius: 9px;
+  background: #181b22;
+  color: #f0f1f5;
+  font: inherit;
+}
+
+.login-card input:focus {
+  border-color: #aab8f5;
+  outline: 2px solid rgb(170 184 245 / 20%);
+}
+
+.login-card button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #dce3ff, #a6b5f6);
+  color: #252a3a;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.login-card button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.login-error,
+.login-field-error {
+  color: #ffb6b6;
+}
+
+.login-error {
+  margin-top: 18px;
+  padding: 11px 12px;
+  border: 1px solid rgb(229 115 115 / 35%);
+  border-radius: 9px;
+  background: rgb(229 115 115 / 9%);
+  font-size: 13px;
+}
+
+.login-field-error {
+  margin-top: -12px;
+  font-size: 12px;
+}
+
+.login-help {
+  margin: 22px 0 0;
+  text-align: center;
+}
